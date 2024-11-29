@@ -1,3 +1,6 @@
+import { SkyMaterial } from '@babylonjs/materials';
+import { getStore as getExpertStore } from './components/expert/ExpertControls';
+
 export function applyRoomDimensions(dimensions: { width: number, length: number, height: number }) {
     console.log('Applying Room Dimensions:', dimensions);
     const roomVolume = dimensions.width * dimensions.length * dimensions.height;
@@ -7,6 +10,7 @@ export function applyRoomDimensions(dimensions: { width: number, length: number,
 }
 
 import { scene } from './main'; // Adjust the import according to your project structure
+import { Scene } from '@babylonjs/core';
 
 function updateSceneRoomDimensions(dimensions: { width: number, length: number, height: number }) {
     console.log('Updating Scene Room Dimensions:', dimensions);
@@ -173,7 +177,33 @@ function applySimulationTiming(realTimeFactor: number) {
     // Logic to apply simulation timing
 }
 
-export function getTimeOfDay(): number {
-    const timeOfDayInput = document.querySelector('input[name="Time of Day"]') as HTMLInputElement;
-    return parseFloat(timeOfDayInput.value);
+let sceneRef: Scene;
+
+export function getTimeOfDay(scene?: Scene): number {
+    if (scene) {
+        sceneRef = scene;
+    }
+    const expertStore = getExpertStore();
+    const timeOfDay = expertStore.getState().timeOfDay;
+    const skyMaterial = sceneRef.getMaterialByName("skyMaterial") as SkyMaterial;
+    if (skyMaterial) {
+        const sunrise = 6; // 6 AM
+        const sunset = 18; // 6 PM
+        const dayDuration = sunset - sunrise;
+        const nightDuration = 24 - dayDuration;
+
+        if (timeOfDay >= sunrise && timeOfDay <= sunset) {
+            skyMaterial.inclination = (timeOfDay - 12) / dayDuration; // Daytime
+            skyMaterial.luminance = 0.5
+        } else {
+            if (timeOfDay > sunset) {
+                skyMaterial.inclination = 0.5; // Nighttime after sunset
+                skyMaterial.luminance = Math.min(0.5, Math.max(0, (timeOfDay - sunset) / nightDuration)); // Gradually increase luminosity
+            } else {
+                skyMaterial.inclination = -0.5; // Nighttime before sunrise
+                skyMaterial.luminance = Math.min(0.5, (sunrise - timeOfDay) / nightDuration); // Gradually increase luminosity
+            }
+        }
+    }
+    return timeOfDay;
 }

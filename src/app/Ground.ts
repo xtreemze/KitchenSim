@@ -1,5 +1,5 @@
 import { Scene, MeshBuilder, StandardMaterial } from '@babylonjs/core';
-import { MarbleProceduralTexture, WoodProceduralTexture } from '@babylonjs/procedural-textures';
+import { MarbleProceduralTexture, WoodProceduralTexture, GrassProceduralTexture } from '@babylonjs/procedural-textures';
 
 function createMarbleMaterial(scene: Scene): StandardMaterial {
     const marbleMaterial = new StandardMaterial("marbleMat", scene);
@@ -20,15 +20,26 @@ function createWoodMaterial(scene: Scene): StandardMaterial {
     return woodMaterial;
 }
 
+function createGrassMaterial(scene: Scene): StandardMaterial {
+    const grassMaterial = new StandardMaterial("grassMat", scene);
+    const grassTexture = new GrassProceduralTexture("grassTex", 512, scene);
+    grassMaterial.diffuseTexture = grassTexture;
+    return grassMaterial;
+}
+
 export function createGround(scene: Scene): void {
     const groundWidth = 20;
     const groundHeight = 10;
     const wallHeight = 3;
     const wallThickness = 0.1;
 
-    const ground = MeshBuilder.CreateGround("ground", { width: groundWidth, height: groundHeight }, scene);
-    ground.position.y = 0.01;
-    ground.material = createMarbleMaterial(scene); // Marble floor
+    const floor = MeshBuilder.CreateBox("floor", { width: groundWidth, height: 0.1, depth: groundHeight }, scene);
+    floor.position.y = 0.05;
+    floor.material = createMarbleMaterial(scene); // Marble floor
+
+    const extendedGround = MeshBuilder.CreateGround("extendedGround", { width: 500, height: 500 }, scene);
+    extendedGround.position.y = 0;
+    extendedGround.material = createGrassMaterial(scene); // Grass ground
 
     const wallAndCeilingMaterial = createWoodMaterial(scene); // Wood material for walls and ceiling
 

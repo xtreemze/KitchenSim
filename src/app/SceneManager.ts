@@ -4,6 +4,7 @@ import { createLightManager } from './LightManager';
 import { createCameraManager } from './CameraManager';
 import { loadCabinets } from './AssetLoader';
 import { createGround } from './Ground';
+import { getTimeOfDay } from '../models';
 
 export function initializeScene(canvasId: string): Scene {
     const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
@@ -36,6 +37,8 @@ export function initializeScene(canvasId: string): Scene {
     engine.runRenderLoop(() => {
         scene.render();
     });
+
+    getTimeOfDay(scene);
 
     return scene;
 }

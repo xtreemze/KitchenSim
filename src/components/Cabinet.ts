@@ -122,11 +122,11 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
     const shelfCount = Math.floor(config.dimensions.height / 30); // Example: shelves every 30 cm
     for (let i = 1; i < shelfCount; i++) {
         const shelf = MeshBuilder.CreateBox(`shelf${i}`, {
-            width: (config.dimensions.width - 2) / 100,
+            width: (config.dimensions.width - 4) / 100, // Adjusted to fit inside the cabinet
             height: 0.02, // Thin shelf
-            depth: (config.dimensions.depth - 2) / 100,
+            depth: (config.dimensions.depth - 4) / 100, // Adjusted to fit inside the cabinet
         });
-        shelf.position = new Vector3(0, (config.dimensions.height / 100) * (i / shelfCount), 0);
+        shelf.position = new Vector3(0, (config.dimensions.height / 100) * (i / shelfCount) - (config.dimensions.height / 200), 0);
         shelf.parent = shell;
     }
 
@@ -135,11 +135,11 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         const drawerCount = 3; // Example: 3 drawers
         for (let i = 0; i < drawerCount; i++) {
             const drawer = MeshBuilder.CreateBox(`drawer${i}`, {
-                width: (config.dimensions.width - 2) / 100,
-                height: (config.dimensions.height / drawerCount - 2) / 100,
-                depth: (config.dimensions.depth - 2) / 100,
+                width: (config.dimensions.width - 4) / 100, // Adjusted to fit inside the cabinet
+                height: (config.dimensions.height / drawerCount - 4) / 100, // Adjusted to fit inside the cabinet
+                depth: (config.dimensions.depth - 4) / 100, // Adjusted to fit inside the cabinet
             });
-            drawer.position = new Vector3(0, (config.dimensions.height / 100) * (i / drawerCount) + (config.dimensions.height / (2 * drawerCount)) / 100, config.dimensions.depth / 200);
+            drawer.position = new Vector3(0, (config.dimensions.height / 100) * (i / drawerCount) - (config.dimensions.height / 200) + (config.dimensions.height / (2 * drawerCount)) / 100, config.dimensions.depth / 200);
             drawer.parent = shell;
         }
     } else {
@@ -150,7 +150,7 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         });
         doorLeft.position = new Vector3(
             -(config.dimensions.width / 400),
-            config.dimensions.height / 200,
+            config.dimensions.height / 200 - (config.dimensions.height / 200),
             config.dimensions.depth / 200
         );
         doorLeft.parent = shell;
@@ -162,7 +162,7 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         });
         doorRight.position = new Vector3(
             config.dimensions.width / 400,
-            config.dimensions.height / 200,
+            config.dimensions.height / 200 - (config.dimensions.height / 200),
             config.dimensions.depth / 200
         );
         doorRight.parent = shell;

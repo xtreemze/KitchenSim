@@ -1,5 +1,5 @@
 // Helper to create sliders with labels
-export function createSlider(labelText: string, min: number, max: number, defaultValue: number, logLabel: string, panel: HTMLElement, unit: string = '') {
+export function createSlider(labelText: string, min: number, max: number, defaultValue: number, panel: HTMLElement, unit: string = '') {
     const container = document.createElement('div');
     container.style.display = 'grid';
     container.style.gridTemplateColumns = '1fr 2fr 1fr';
@@ -7,17 +7,20 @@ export function createSlider(labelText: string, min: number, max: number, defaul
     container.style.marginBottom = '10px';
 
     const label = document.createElement('label');
+    const sliderId = `slider-${labelText.replace(/\s+/g, '-').toLowerCase()}`;
+    label.setAttribute('for', sliderId);
     label.innerText = labelText;
     container.appendChild(label);
 
     const slider = document.createElement('input');
     slider.type = 'range';
+    slider.id = sliderId;
     slider.min = min.toString();
     slider.max = max.toString();
     slider.value = defaultValue.toString();
     slider.oninput = () => {
         valueDisplay.innerText = `${slider.value} ${unit}`;
-        console.log(`${logLabel}:`, slider.value);
+        // console.log(`${logLabel}:`, slider.value);
     };
     container.appendChild(slider);
 
@@ -47,14 +50,17 @@ export function createCheckboxGroup(options: string[], logLabel: string, panel: 
         container.style.marginBottom = '5px';
 
         const checkbox = document.createElement('input');
+        const checkboxId = `checkbox-${option.replace(/\s+/g, '-').toLowerCase()}`;
+        checkbox.id = checkboxId;
         checkbox.type = 'checkbox';
         checkbox.checked = true;
         checkbox.onchange = () => {
-            console.log(`${logLabel} ${option}:`, checkbox.checked);
+            // console.log(`${logLabel} ${option}:`, checkbox.checked);
         };
         container.appendChild(checkbox);
 
         const label = document.createElement('label');
+        label.setAttribute('for', checkboxId);
         label.innerText = option;
         container.appendChild(label);
 
@@ -83,15 +89,18 @@ export function createRadioGroup(options: string[], logLabel: string, panel: HTM
         container.style.marginBottom = '5px';
 
         const radioButton = document.createElement('input');
+        const radioId = `radio-${option.replace(/\s+/g, '-').toLowerCase()}`;
+        radioButton.id = radioId;
         radioButton.type = 'radio';
         radioButton.name = logLabel;
         radioButton.checked = option === options[0];
-        radioButton.onchange = () => {
-            if (radioButton.checked) console.log(`${logLabel}:`, option);
-        };
+        // radioButton.onchange = () => {
+        //     if (radioButton.checked) console.log(`${logLabel}:`, option);
+        // };
         container.appendChild(radioButton);
 
         const label = document.createElement('label');
+        label.setAttribute('for', radioId);
         label.innerText = option;
         container.appendChild(label);
 
