@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "target": "ES2020", // Set the ECMAScript target version
+        "module": "ESNext", // Use the latest module system
+        "lib": [
+            "DOM",
+            "ESNext"
+        ], // Include DOM and ESNext libraries
+        "moduleResolution": "Node", // Node-style module resolution
+        "strict": true, // Enable all strict type-checking options
+        "esModuleInterop": true, // Allow interoperability with CommonJS modules
+        "skipLibCheck": true, // Skip type checks for libraries
+        "forceConsistentCasingInFileNames": true, // Enforce consistent file casing
+        "outDir": "dist", // Specify the output directory for compiled files
+        "rootDir": "src", // Specify the root directory of input files
+        "baseUrl": ".", // Set the base URL for module resolution
+        "paths": {
+            "@app/*": [
+                "src/app/*"
+            ], // Create path alias for the app directory
+            "@components/*": [
+                "src/components/*"
+            ] // Create path alias for components
+        },
+        "resolveJsonModule": true, // Enable importing JSON files
+        "noImplicitAny": true, // Disallow usage of the `any` type
+        "noUnusedLocals": true, // Report errors on unused locals
+        "noUnusedParameters": true, // Report errors on unused parameters
+        "noImplicitReturns": true, // Ensure functions return values explicitly
+        "noFallthroughCasesInSwitch": true // Prevent fallthrough in switch statements
+    },
+    "include": [
+        "src/**/*"
+    ], // Include all files in the src directory
+    "exclude": [
+        "node_modules",
+        "dist"
+    ] // Exclude node_modules and output directory
+}

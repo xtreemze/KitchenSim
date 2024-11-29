@@ -1,0 +1,32 @@
+{
+  "name": "kitchensim",
+  "version": "1.0.0",
+  "description": "",
+  "main": ".eslintrc.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "start": "vite"
+  },
+  "keywords": [],
+  "author": "@xtreemze",
+  "license": "MIT",
+  "dependencies": {
+    "@babylonjs/core": "^7.37.0",
+    "@babylonjs/gui": "^7.37.0",
+    "@babylonjs/inspector": "^7.37.0",
+    "@babylonjs/loaders": "^7.37.0",
+    "@babylonjs/materials": "^7.37.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.16.0",
+    "@typescript-eslint/parser": "^8.16.0",
+    "eslint": "^9.15.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.1"
+  }
+}

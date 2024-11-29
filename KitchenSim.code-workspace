@@ -1,0 +1,12 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "files.autoSave": "onFocusChange",
+        "typescript.tsdk": "node_modules/typescript/lib"
+    }
+}
