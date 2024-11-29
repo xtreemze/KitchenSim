@@ -10,20 +10,16 @@ export function addBasicControls(panel: HTMLElement) {
         const groceryFrequency = parseInt((panel.querySelector('input[name="Grocery Frequency"]') as HTMLInputElement).value);
         const mealPrepFrequency = parseInt((panel.querySelector('input[name="Meal Prep Frequency"]') as HTMLInputElement).value);
         const cookingFrequency = parseInt((panel.querySelector('input[name="Cooking Frequency"]') as HTMLInputElement).value);
+        const roomWidth = parseInt((panel.querySelector('input[name="Room Width"]') as HTMLInputElement).value);
+        const roomLength = parseInt((panel.querySelector('input[name="Room Length"]') as HTMLInputElement).value);
+        const ceilingHeight = parseInt((panel.querySelector('input[name="Ceiling Height"]') as HTMLInputElement).value);
         const appliancesEnabled = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
             .filter((checkbox) => (checkbox as HTMLInputElement).checked)
             .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
             .filter((text): text is string => text !== null && text !== undefined);
 
-        console.log('Simulating Kitchen with the following settings:');
-        console.log('Family Size:', familySize);
-        console.log('Grocery Trip Frequency:', groceryFrequency);
-        console.log('Meal Prep Frequency:', mealPrepFrequency);
-        console.log('Cooking Frequency:', cookingFrequency);
-        console.log('Appliances Enabled:', appliancesEnabled);
-
         // Send the gathered state to the mathematical models
-        applyRoomDimensions({ width: 10, length: 10, height: 3 }); // Example values
+        applyRoomDimensions({ width: roomWidth, length: roomLength, height: ceilingHeight });
         applyMealSettings({ familySize, groceryFrequency, mealPrepFrequency, cookingFrequency });
         applyEnergySettings({ appliancesEnabled });
         applyLightingSettings({ lightingPreset: 'Default', lightIntensity: 1, lightingBrightness: 75, colorTemperature: 4000 }); // Example values
@@ -31,6 +27,69 @@ export function addBasicControls(panel: HTMLElement) {
         applyApplianceSettings({ applianceEfficiency: 100, ventilationSpeed: 2, ventilationControls: 'On' }); // Example values
         applyRoleSettings({ roles: ['Cooking', 'Cleaning'], roleWeightingCooking: 70, roleWeightingCleaning: 30 }); // Example values
         applySimulationSettings({ simulationSpeed: 1, recyclingRegion: 'USA' }); // Example values
+
+        // Add event listeners to update the settings when inputs change
+        panel.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', () => {
+                const updatedFamilySize = parseInt((panel.querySelector('input[name="Family Size"]') as HTMLInputElement).value);
+                const updatedGroceryFrequency = parseInt((panel.querySelector('input[name="Grocery Frequency"]') as HTMLInputElement).value);
+                const updatedMealPrepFrequency = parseInt((panel.querySelector('input[name="Meal Prep Frequency"]') as HTMLInputElement).value);
+                const updatedCookingFrequency = parseInt((panel.querySelector('input[name="Cooking Frequency"]') as HTMLInputElement).value);
+                const updatedRoomWidth = parseInt((panel.querySelector('input[name="Room Width"]') as HTMLInputElement).value);
+                const updatedRoomLength = parseInt((panel.querySelector('input[name="Room Length"]') as HTMLInputElement).value);
+                const updatedCeilingHeight = parseInt((panel.querySelector('input[name="Ceiling Height"]') as HTMLInputElement).value);
+                const updatedAppliancesEnabled = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
+                    .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+                    .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                    .filter((text): text is string => text !== null && text !== undefined);
+
+                applyRoomDimensions({ width: updatedRoomWidth, length: updatedRoomLength, height: updatedCeilingHeight });
+                applyMealSettings({ familySize: updatedFamilySize, groceryFrequency: updatedGroceryFrequency, mealPrepFrequency: updatedMealPrepFrequency, cookingFrequency: updatedCookingFrequency });
+                applyEnergySettings({ appliancesEnabled: updatedAppliancesEnabled });
+                applyLightingSettings({ lightingPreset: 'Default', lightIntensity: 1, lightingBrightness: 75, colorTemperature: 4000 }); // Example values
+                applyWasteSettings({ wasteFrequency: 3, binCapacity: 30, wasteCategories: ['Compost', 'Plastic'] }); // Example values
+                applyApplianceSettings({ applianceEfficiency: 100, ventilationSpeed: 2, ventilationControls: 'On' }); // Example values
+                applyRoleSettings({ roles: ['Cooking', 'Cleaning'], roleWeightingCooking: 70, roleWeightingCleaning: 30 }); // Example values
+                applySimulationSettings({ simulationSpeed: 1, recyclingRegion: 'USA' }); // Example values
+            });
+        });
+        // Debounce function to limit the rate at which a function can fire
+        function debounce(this: void, func: Function, wait: number) {
+            let timeout: number | undefined;
+            return (...args: any[]) => {
+                clearTimeout(timeout);
+                timeout = window.setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Debounced function to apply settings
+        const debouncedApplySettings = debounce(() => {
+            const updatedFamilySize = parseInt((panel.querySelector('input[name="Family Size"]') as HTMLInputElement).value);
+            const updatedGroceryFrequency = parseInt((panel.querySelector('input[name="Grocery Frequency"]') as HTMLInputElement).value);
+            const updatedMealPrepFrequency = parseInt((panel.querySelector('input[name="Meal Prep Frequency"]') as HTMLInputElement).value);
+            const updatedCookingFrequency = parseInt((panel.querySelector('input[name="Cooking Frequency"]') as HTMLInputElement).value);
+            const updatedRoomWidth = parseInt((panel.querySelector('input[name="Room Width"]') as HTMLInputElement).value);
+            const updatedRoomLength = parseInt((panel.querySelector('input[name="Room Length"]') as HTMLInputElement).value);
+            const updatedCeilingHeight = parseInt((panel.querySelector('input[name="Ceiling Height"]') as HTMLInputElement).value);
+            const updatedAppliancesEnabled = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
+                .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+                .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                .filter((text): text is string => text !== null && text !== undefined);
+
+            applyRoomDimensions({ width: updatedRoomWidth, length: updatedRoomLength, height: updatedCeilingHeight });
+            applyMealSettings({ familySize: updatedFamilySize, groceryFrequency: updatedGroceryFrequency, mealPrepFrequency: updatedMealPrepFrequency, cookingFrequency: updatedCookingFrequency });
+            applyEnergySettings({ appliancesEnabled: updatedAppliancesEnabled });
+            applyLightingSettings({ lightingPreset: 'Default', lightIntensity: 1, lightingBrightness: 75, colorTemperature: 4000 }); // Example values
+            applyWasteSettings({ wasteFrequency: 3, binCapacity: 30, wasteCategories: ['Compost', 'Plastic'] }); // Example values
+            applyApplianceSettings({ applianceEfficiency: 100, ventilationSpeed: 2, ventilationControls: 'On' }); // Example values
+            applyRoleSettings({ roles: ['Cooking', 'Cleaning'], roleWeightingCooking: 70, roleWeightingCleaning: 30 }); // Example values
+            applySimulationSettings({ simulationSpeed: 1, recyclingRegion: 'USA' }); // Example values
+        }, 300);
+
+        // Add event listeners to update the settings when inputs change
+        panel.querySelectorAll('input').forEach(input => {
+            input.addEventListener('change', debouncedApplySettings);
+        });
     });
     panel.appendChild(simulateButton);
 

@@ -1,14 +1,9 @@
 import { createSlider, createCheckboxGroup, createRadioGroup, createTitle, createCollapsibleSection } from '../../guiHelpers';
+import { applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
 
 export function addAdvancedControls(panel: HTMLElement) {
     const title = createTitle('Advanced Controls');
     panel.appendChild(title);
-
-    const roomSection = createCollapsibleSection('Room Dimensions', panel);
-    createSlider('Room Width:', 2, 20, 10, 'Room Width', roomSection, 'meters');
-    createSlider('Room Length:', 2, 20, 10, 'Room Length', roomSection, 'meters');
-    createSlider('Ceiling Height:', 2, 5, 3, 'Ceiling Height', roomSection, 'meters');
-    panel.appendChild(roomSection);
 
     const lightingSection = createCollapsibleSection('Lighting Settings', panel);
     createSlider('Light Intensity:', 0, 5, 1, 'Light Intensity', lightingSection, 'lux');
@@ -43,4 +38,38 @@ export function addAdvancedControls(panel: HTMLElement) {
     createCheckboxGroup(['Fruits', 'Vegetables', 'Proteins', 'Snacks'], 'Ingredient Categories', energySection);
     createSlider('Cleaning Frequency:', 1, 7, 3, 'Cleaning Frequency', energySection, 'times/day');
     panel.appendChild(energySection);
+
+    // Apply settings when inputs change
+    panel.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', () => {
+            const lightIntensity = parseFloat((panel.querySelector('input[name="Light Intensity"]') as HTMLInputElement).value);
+            const lightingBrightness = parseFloat((panel.querySelector('input[name="Lighting Brightness"]') as HTMLInputElement).value);
+            const colorTemperature = parseFloat((panel.querySelector('input[name="Color Temperature"]') as HTMLInputElement).value);
+            applyLightingSettings({ lightingPreset: 'Advanced', lightIntensity, lightingBrightness, colorTemperature });
+
+            const wasteFrequency = parseInt((panel.querySelector('input[name="Waste Frequency"]') as HTMLInputElement).value);
+            const binCapacity = parseInt((panel.querySelector('input[name="Bin Capacity"]') as HTMLInputElement).value);
+            const wasteCategories = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
+                .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+                .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                .filter((text): text is string => text !== null && text !== undefined);
+            applyWasteSettings({ wasteFrequency, binCapacity, wasteCategories });
+
+            const applianceEfficiency = parseInt((panel.querySelector('input[name="Efficiency"]') as HTMLInputElement).value);
+            const ventilationSpeed = parseInt((panel.querySelector('input[name="Ventilation Speed"]') as HTMLInputElement).value);
+            const ventilationControls = (panel.querySelector('input[name="Ventilation Controls"]:checked') as HTMLInputElement).value;
+            applyApplianceSettings({ applianceEfficiency, ventilationSpeed, ventilationControls });
+
+            const roles = Array.from(panel.querySelectorAll('input[name="Assign Roles"]:checked'))
+                .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                .filter((text): text is string => text !== null && text !== undefined);
+            const roleWeightingCooking = parseInt((panel.querySelector('input[name="Role Weighting (Cooking)"]') as HTMLInputElement).value);
+            const roleWeightingCleaning = parseInt((panel.querySelector('input[name="Role Weighting (Cleaning)"]') as HTMLInputElement).value);
+            applyRoleSettings({ roles, roleWeightingCooking, roleWeightingCleaning });
+
+            const simulationSpeed = parseFloat((panel.querySelector('input[name="Simulation Speed"]') as HTMLInputElement).value);
+            const recyclingRegion = (panel.querySelector('input[name="Regional Recycling Rules"]:checked') as HTMLInputElement).value;
+            applySimulationSettings({ simulationSpeed, recyclingRegion });
+        });
+    });
 }

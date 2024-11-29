@@ -1,15 +1,9 @@
-
 import { createSlider, createCheckboxGroup, createRadioGroup, createTitle, createCollapsibleSection } from '../../guiHelpers';
+import { applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
 
 export function addExpertControls(panel: HTMLElement) {
     const title = createTitle('Expert Controls');
     panel.appendChild(title);
-
-    const lightingSection = createCollapsibleSection('Lighting Settings', panel);
-    createSlider('Light Intensity:', 0, 5, 1, 'Light Intensity', lightingSection, 'lux');
-    createSlider('Lighting Brightness (%):', 0, 100, 75, 'Lighting Brightness', lightingSection, '%');
-    createSlider('Color Temperature (K):', 1000, 8000, 4000, 'Color Temperature', lightingSection, 'K');
-    panel.appendChild(lightingSection);
 
     const timeSection = createCollapsibleSection('Time Settings', panel);
     createSlider('Time of Day (hours):', 0, 48, 12, 'Time of Day', timeSection, 'hours');
@@ -38,4 +32,33 @@ export function addExpertControls(panel: HTMLElement) {
     createSlider('Simulation Speed:', 0.5, 5, 1, 'Simulation Speed', simulationSection, 'x');
     createRadioGroup(['USA', 'Japan', 'EU'], 'Regional Recycling Rules', simulationSection);
     panel.appendChild(simulationSection);
+
+    // Apply settings when inputs change
+    panel.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', () => {
+            const wasteFrequency = parseInt((panel.querySelector('input[name="Waste Frequency"]') as HTMLInputElement).value);
+            const binCapacity = parseInt((panel.querySelector('input[name="Bin Capacity"]') as HTMLInputElement).value);
+            const wasteCategories = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
+                .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+                .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                .filter((text): text is string => text !== null && text !== undefined);
+            applyWasteSettings({ wasteFrequency, binCapacity, wasteCategories });
+
+            const applianceEfficiency = parseInt((panel.querySelector('input[name="Efficiency"]') as HTMLInputElement).value);
+            const ventilationSpeed = parseInt((panel.querySelector('input[name="Ventilation Speed"]') as HTMLInputElement).value);
+            const ventilationControls = (panel.querySelector('input[name="Ventilation Controls"]:checked') as HTMLInputElement).value;
+            applyApplianceSettings({ applianceEfficiency, ventilationSpeed, ventilationControls });
+
+            const roles = Array.from(panel.querySelectorAll('input[name="Assign Roles"]:checked'))
+                .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
+                .filter((text): text is string => text !== null && text !== undefined);
+            const roleWeightingCooking = parseInt((panel.querySelector('input[name="Role Weighting (Cooking)"]') as HTMLInputElement).value);
+            const roleWeightingCleaning = parseInt((panel.querySelector('input[name="Role Weighting (Cleaning)"]') as HTMLInputElement).value);
+            applyRoleSettings({ roles, roleWeightingCooking, roleWeightingCleaning });
+
+            const simulationSpeed = parseFloat((panel.querySelector('input[name="Simulation Speed"]') as HTMLInputElement).value);
+            const recyclingRegion = (panel.querySelector('input[name="Regional Recycling Rules"]:checked') as HTMLInputElement).value;
+            applySimulationSettings({ simulationSpeed, recyclingRegion });
+        });
+    });
 }

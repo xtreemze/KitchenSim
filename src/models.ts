@@ -3,7 +3,63 @@ export function applyRoomDimensions(dimensions: { width: number, length: number,
     const roomVolume = dimensions.width * dimensions.length * dimensions.height;
     const usableArea = dimensions.width * dimensions.length * 0.8; // 20% non-usable
     generateKitchenLayout(usableArea, roomVolume);
-    // Logic to apply room dimensions to the scene
+    updateSceneRoomDimensions(dimensions);
+}
+
+import { scene } from './main'; // Adjust the import according to your project structure
+
+function updateSceneRoomDimensions(dimensions: { width: number, length: number, height: number }) {
+    console.log('Updating Scene Room Dimensions:', dimensions);
+    updateGround(dimensions);
+    updateCeiling(dimensions);
+    updateWalls(dimensions);
+}
+
+function updateGround(dimensions: { width: number, length: number }) {
+    const ground = scene.getMeshByName("ground");
+    if (ground) {
+        ground.scaling.x = dimensions.width / 10;
+        ground.scaling.z = dimensions.length / 10;
+    }
+}
+
+function updateCeiling(dimensions: { width: number, length: number, height: number }) {
+    const ceiling = scene.getMeshByName("ceiling");
+    if (ceiling) {
+        ceiling.scaling.x = dimensions.width / 10;
+        ceiling.scaling.z = dimensions.length / 10;
+        ceiling.position.y = dimensions.height;
+    }
+}
+
+function updateWalls(dimensions: { width: number, length: number, height: number }) {
+    const wall1 = scene.getMeshByName("wall1");
+    if (wall1) {
+        wall1.scaling.x = dimensions.width / 10;
+        wall1.position.z = -dimensions.length / 2;
+        wall1.scaling.y = dimensions.height / 3;
+    }
+
+    const wall2 = scene.getMeshByName("wall2");
+    if (wall2) {
+        wall2.scaling.x = dimensions.width / 10;
+        wall2.position.z = dimensions.length / 2;
+        wall2.scaling.y = dimensions.height / 3;
+    }
+
+    const wall3 = scene.getMeshByName("wall3");
+    if (wall3) {
+        wall3.scaling.z = dimensions.length / 10;
+        wall3.position.x = -dimensions.width / 2;
+        wall3.scaling.y = dimensions.height / 3;
+    }
+
+    const wall4 = scene.getMeshByName("wall4");
+    if (wall4) {
+        wall4.scaling.z = dimensions.length / 10;
+        wall4.position.x = dimensions.width / 2;
+        wall4.scaling.y = dimensions.height / 3;
+    }
 }
 
 function generateKitchenLayout(usableArea: number, roomVolume: number) {
