@@ -1,7 +1,7 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder } from '@babylonjs/core';
 import { setupGUI } from './gui'; // Import the GUI module
 import { createCabinet } from './components/Cabinet'; // Import the Cabinet component
-import { Inspector } from '@babylonjs/inspector';
+// import { Inspector } from '@babylonjs/inspector';
 
 // Get canvas element
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
@@ -25,7 +25,7 @@ const cabinet = createCabinet(scene);
 
 // Create GUI
 setupGUI(cabinet, light);
-Inspector.Show(scene, {});
+// Inspector.Show(scene, {});
 
 // Start rendering the scene
 engine.runRenderLoop(() => {
