@@ -1,4 +1,5 @@
-import { Engine, Scene, ScenePerformancePriority } from '@babylonjs/core';
+import { Engine, MeshBuilder, Scene, ScenePerformancePriority } from '@babylonjs/core';
+import { SkyMaterial } from '@babylonjs/materials';
 import { createLightManager } from './LightManager';
 import { createCameraManager } from './CameraManager';
 import { loadCabinets } from './AssetLoader';
@@ -20,6 +21,13 @@ export function initializeScene(canvasId: string): Scene {
 
     // Initialize ground, walls, and ceiling
     createGround(scene);
+
+    // Add skybox
+    const skyMaterial = new SkyMaterial("skyMaterial", scene);
+    skyMaterial.backFaceCulling = false;
+
+    const skybox = MeshBuilder.CreateBox("skyBox", { size: 1000.0 }, scene);
+    skybox.material = skyMaterial;
 
     // Load assets
     loadCabinets(scene);

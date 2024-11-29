@@ -1,6 +1,134 @@
 import { createSlider, createCheckboxGroup, createRadioGroup, createTitle, createCollapsibleSection } from '../../guiHelpers';
 import { applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
 
+interface StoreState {
+    timeOfDay: number;
+    wasteFrequency: number;
+    binCapacity: number;
+    wasteCategories: string[];
+    applianceEfficiency: number;
+    ventilationSpeed: number;
+    ventilationControls: string;
+    roles: string[];
+    roleWeightingCooking: number;
+    roleWeightingCleaning: number;
+    simulationSpeed: number;
+    recyclingRegion: string;
+}
+
+const initialState: StoreState = {
+    timeOfDay: 12,
+    wasteFrequency: 3,
+    binCapacity: 30,
+    wasteCategories: [],
+    applianceEfficiency: 100,
+    ventilationSpeed: 2,
+    ventilationControls: 'Off',
+    roles: [],
+    roleWeightingCooking: 70,
+    roleWeightingCleaning: 30,
+    simulationSpeed: 1,
+    recyclingRegion: 'USA'
+};
+
+function updateState(state: StoreState, updates: Partial<StoreState>): StoreState {
+    return { ...state, ...updates };
+}
+
+class Store {
+    private state: StoreState;
+
+    constructor() {
+        this.state = initialState;
+    }
+
+    get timeOfDay() {
+        return this.state.timeOfDay;
+    }
+    set timeOfDay(value: number) {
+        this.state = updateState(this.state, { timeOfDay: value });
+    }
+
+    get wasteFrequency() {
+        return this.state.wasteFrequency;
+    }
+    set wasteFrequency(value: number) {
+        this.state = updateState(this.state, { wasteFrequency: value });
+    }
+
+    get binCapacity() {
+        return this.state.binCapacity;
+    }
+    set binCapacity(value: number) {
+        this.state = updateState(this.state, { binCapacity: value });
+    }
+
+    get wasteCategories() {
+        return this.state.wasteCategories;
+    }
+    set wasteCategories(value: string[]) {
+        this.state = updateState(this.state, { wasteCategories: value });
+    }
+
+    get applianceEfficiency() {
+        return this.state.applianceEfficiency;
+    }
+    set applianceEfficiency(value: number) {
+        this.state = updateState(this.state, { applianceEfficiency: value });
+    }
+
+    get ventilationSpeed() {
+        return this.state.ventilationSpeed;
+    }
+    set ventilationSpeed(value: number) {
+        this.state = updateState(this.state, { ventilationSpeed: value });
+    }
+
+    get ventilationControls() {
+        return this.state.ventilationControls;
+    }
+    set ventilationControls(value: string) {
+        this.state = updateState(this.state, { ventilationControls: value });
+    }
+
+    get roles() {
+        return this.state.roles;
+    }
+    set roles(value: string[]) {
+        this.state = updateState(this.state, { roles: value });
+    }
+
+    get roleWeightingCooking() {
+        return this.state.roleWeightingCooking;
+    }
+    set roleWeightingCooking(value: number) {
+        this.state = updateState(this.state, { roleWeightingCooking: value });
+    }
+
+    get roleWeightingCleaning() {
+        return this.state.roleWeightingCleaning;
+    }
+    set roleWeightingCleaning(value: number) {
+        this.state = updateState(this.state, { roleWeightingCleaning: value });
+    }
+
+    get simulationSpeed() {
+        return this.state.simulationSpeed;
+    }
+    set simulationSpeed(value: number) {
+        this.state = updateState(this.state, { simulationSpeed: value });
+    }
+
+    get recyclingRegion() {
+        return this.state.recyclingRegion;
+    }
+    set recyclingRegion(value: string) {
+        this.state = updateState(this.state, { recyclingRegion: value });
+    }
+}
+
+const store = new Store();
+
 export function addExpertControls(panel: HTMLElement) {
     const title = createTitle('Expert Controls');
     panel.appendChild(title);
@@ -36,29 +164,33 @@ export function addExpertControls(panel: HTMLElement) {
     // Apply settings when inputs change
     panel.querySelectorAll('input').forEach(input => {
         input.addEventListener('change', () => {
-            const wasteFrequency = parseInt((panel.querySelector('input[name="Waste Frequency"]') as HTMLInputElement).value);
-            const binCapacity = parseInt((panel.querySelector('input[name="Bin Capacity"]') as HTMLInputElement).value);
-            const wasteCategories = Array.from(panel.querySelectorAll('input[type="checkbox"]'))
-                .filter((checkbox) => (checkbox as HTMLInputElement).checked)
+            store.timeOfDay = parseFloat((panel.querySelector('input[name="Time of Day"]') as HTMLInputElement).value);
+            store.wasteFrequency = parseInt((panel.querySelector('input[name="Waste Frequency"]') as HTMLInputElement).value);
+            store.binCapacity = parseInt((panel.querySelector('input[name="Bin Capacity"]') as HTMLInputElement).value);
+            store.wasteCategories = Array.from(panel.querySelectorAll('input[name="Dynamic Waste Categories"]:checked'))
                 .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
                 .filter((text): text is string => text !== null && text !== undefined);
-            applyWasteSettings({ wasteFrequency, binCapacity, wasteCategories });
+            applyWasteSettings({ wasteFrequency: store.wasteFrequency, binCapacity: store.binCapacity, wasteCategories: store.wasteCategories });
 
-            const applianceEfficiency = parseInt((panel.querySelector('input[name="Efficiency"]') as HTMLInputElement).value);
-            const ventilationSpeed = parseInt((panel.querySelector('input[name="Ventilation Speed"]') as HTMLInputElement).value);
-            const ventilationControls = (panel.querySelector('input[name="Ventilation Controls"]:checked') as HTMLInputElement).value;
-            applyApplianceSettings({ applianceEfficiency, ventilationSpeed, ventilationControls });
+            store.applianceEfficiency = parseInt((panel.querySelector('input[name="Efficiency"]') as HTMLInputElement).value);
+            store.ventilationSpeed = parseInt((panel.querySelector('input[name="Ventilation Speed"]') as HTMLInputElement).value);
+            store.ventilationControls = (panel.querySelector('input[name="Ventilation Controls"]:checked') as HTMLInputElement).value;
+            applyApplianceSettings({ applianceEfficiency: store.applianceEfficiency, ventilationSpeed: store.ventilationSpeed, ventilationControls: store.ventilationControls });
 
-            const roles = Array.from(panel.querySelectorAll('input[name="Assign Roles"]:checked'))
+            store.roles = Array.from(panel.querySelectorAll('input[name="Assign Roles"]:checked'))
                 .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
                 .filter((text): text is string => text !== null && text !== undefined);
-            const roleWeightingCooking = parseInt((panel.querySelector('input[name="Role Weighting (Cooking)"]') as HTMLInputElement).value);
-            const roleWeightingCleaning = parseInt((panel.querySelector('input[name="Role Weighting (Cleaning)"]') as HTMLInputElement).value);
-            applyRoleSettings({ roles, roleWeightingCooking, roleWeightingCleaning });
+            store.roleWeightingCooking = parseInt((panel.querySelector('input[name="Role Weighting (Cooking)"]') as HTMLInputElement).value);
+            store.roleWeightingCleaning = parseInt((panel.querySelector('input[name="Role Weighting (Cleaning)"]') as HTMLInputElement).value);
+            applyRoleSettings({ roles: store.roles, roleWeightingCooking: store.roleWeightingCooking, roleWeightingCleaning: store.roleWeightingCleaning });
 
-            const simulationSpeed = parseFloat((panel.querySelector('input[name="Simulation Speed"]') as HTMLInputElement).value);
-            const recyclingRegion = (panel.querySelector('input[name="Regional Recycling Rules"]:checked') as HTMLInputElement).value;
-            applySimulationSettings({ simulationSpeed, recyclingRegion });
+            store.simulationSpeed = parseFloat((panel.querySelector('input[name="Simulation Speed"]') as HTMLInputElement).value);
+            store.recyclingRegion = (panel.querySelector('input[name="Regional Recycling Rules"]:checked') as HTMLInputElement).value;
+            applySimulationSettings({ simulationSpeed: store.simulationSpeed, recyclingRegion: store.recyclingRegion });
         });
     });
+}
+
+export function getStore() {
+    return store;
 }

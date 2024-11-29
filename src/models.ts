@@ -172,3 +172,8 @@ function applySimulationTiming(realTimeFactor: number) {
     console.log('Applying Simulation Timing:', realTimeFactor);
     // Logic to apply simulation timing
 }
+
+export function getTimeOfDay(): number {
+    const timeOfDayInput = document.querySelector('input[name="Time of Day"]') as HTMLInputElement;
+    return parseFloat(timeOfDayInput.value);
+}
