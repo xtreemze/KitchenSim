@@ -19,36 +19,42 @@ The Kitchen Simulation is an interactive and dynamic tool designed to model the 
 ## Getting Started
 
 ### Prerequisites
+
 - **Node.js** (v16+)
 - **npm**
 
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/xtreemze/KitchenSim.git
    cd KitchenSim
-   ```
+   ```bash
 
 2. Install dependencies:
+
    ```bash
    npm install
-   ```
+   ```bash
 
 3. Start the development server:
+
    ```bash
    npm run dev
    ```
 
 4. Open the application in your browser:
-   ```
+
+   ```bash
    http://localhost:3000
    ```
 
 ### Project Structure
 
 The application is organized as follows:
-```
+
+```bash
 KitchenSim/
 ├── public/                     # Static assets (textures, models, shaders)
 ├── src/                        # Source code
@@ -86,15 +92,19 @@ We welcome contributions! Please follow these steps to contribute:
 
 1. Fork the repository.
 2. Create a new branch for your feature:
+
    ```bash
    git checkout -b feature-name
    ```
+
 3. Commit your changes and push to your fork:
+
    ```bash
    git add .
    git commit -m "Add feature-name"
    git push origin feature-name
    ```
+
 4. Submit a pull request.
 
 ## Roadmap

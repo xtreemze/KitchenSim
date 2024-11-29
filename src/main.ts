@@ -1,5 +1,5 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3, MeshBuilder } from '@babylonjs/core';
-import './gui'; // Import the GUI module
+import { createGUI } from './gui'; // Import the GUI module
 import { createCabinet } from './components/Cabinet'; // Import the Cabinet component
 
 // Get canvas element
@@ -21,6 +21,9 @@ const ground = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, sce
 
 // Add a cabinet to the scene
 const cabinet = createCabinet(scene);
+
+// Create GUI
+createGUI(scene);
 
 // Start rendering the scene
 engine.runRenderLoop(() => {
