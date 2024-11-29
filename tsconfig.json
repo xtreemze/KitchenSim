@@ -31,7 +31,7 @@
     },
     "include": [
         "src/**/*"
-    ], // Include all files in the src directory
+, "tests/gui.test.ts"    ], // Include all files in the src directory
     "exclude": [
         "node_modules",
         "dist"

@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "start": "vite"
+    "start": "vite",
+    "test": "jest"
   },
   "keywords": [],
   "author": "@xtreemze",
@@ -22,10 +23,12 @@
     "@babylonjs/materials": "^7.37.0"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.10.1",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.16.0",
     "eslint": "^9.15.0",
+    "jest": "^29.7.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.1"
   }

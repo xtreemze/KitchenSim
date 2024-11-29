@@ -1,133 +1,108 @@
-import { Nullable, Scene } from '@babylonjs/core';
-import { AdvancedDynamicTexture, Button, IAdvancedDynamicTextureOptions, Slider, StackPanel, Checkbox, RadioButton, TextBlock } from '@babylonjs/gui';
+import { Nullable, Scene } from "@babylonjs/core";
+import { AdvancedDynamicTexture, StackPanel, Button, Control } from "@babylonjs/gui";
+import { createTitle, createSlider, createCheckboxGroup, createRadioGroup } from "./guiHelpers";
 
-export function createGUI(scene: Nullable<Scene> | IAdvancedDynamicTextureOptions | undefined) {
+export function createGUI(scene: Nullable<Scene> | undefined) {
   const guiTexture = AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
-  // Create a stack panel for organized layout
-  const stackPanel = new StackPanel();
-  stackPanel.width = "220px";
-  stackPanel.horizontalAlignment = StackPanel.HORIZONTAL_ALIGNMENT_LEFT;
-  stackPanel.verticalAlignment = StackPanel.VERTICAL_ALIGNMENT_CENTER;
-  guiTexture.addControl(stackPanel);
+  // Create a root stack panel
+  const rootPanel = new StackPanel();
+  rootPanel.width = "300px";
+  rootPanel.horizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+  rootPanel.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+  guiTexture.addControl(rootPanel);
 
-  // Add a slider for family size
-  const familySizeSlider = new Slider();
-  familySizeSlider.minimum = 1;
-  familySizeSlider.maximum = 6;
-  familySizeSlider.value = 4;
-  familySizeSlider.height = "20px";
-  familySizeSlider.width = "200px";
-  familySizeSlider.onValueChangedObservable.add((value) => {
-    console.log("Family Size:", value);
-  });
-  addLabelToSlider(stackPanel, familySizeSlider, "Family Size:");
+  // Create mode selection buttons
+  const modeSelectionPanel = new StackPanel();
+  modeSelectionPanel.isVertical = false;
+  modeSelectionPanel.height = "50px";
+  rootPanel.addControl(modeSelectionPanel);
 
-  // Add a slider for grocery trip frequency
-  const grocerySlider = new Slider();
-  grocerySlider.minimum = 1;
-  grocerySlider.maximum = 7;
-  grocerySlider.value = 3;
-  grocerySlider.height = "20px";
-  grocerySlider.width = "200px";
-  grocerySlider.onValueChangedObservable.add((value) => {
-    console.log("Grocery Trip Frequency:", value, "days");
-  });
-  addLabelToSlider(stackPanel, grocerySlider, "Grocery Trip Frequency (days):");
+  const modes = ["Basic", "Advanced", "Expert"];
+  const modePanels: { [key: string]: StackPanel } = {}; // Store panels for toggling
 
-  // Add a slider for meal preparation frequency
-  const mealSlider = new Slider();
-  mealSlider.minimum = 1;
-  mealSlider.maximum = 4;
-  mealSlider.value = 2;
-  mealSlider.height = "20px";
-  mealSlider.width = "200px";
-  mealSlider.onValueChangedObservable.add((value) => {
-    console.log("Meal Prep Frequency:", value, "meals/day");
-  });
-  addLabelToSlider(stackPanel, mealSlider, "Meals Prepared (per day):");
-
-  // Add checkboxes for enabling/disabling major appliances
-  const appliancesCheckboxGroup = new StackPanel();
-  appliancesCheckboxGroup.isVertical = true;
-  appliancesCheckboxGroup.width = "220px";
-
-  const applianceNames = ["Dishwasher", "Microwave", "Oven"];
-  applianceNames.forEach((name) => {
-    const checkbox = new Checkbox();
-    checkbox.width = "20px";
-    checkbox.height = "20px";
-    checkbox.isChecked = true;
-    checkbox.color = "white";
-    checkbox.onIsCheckedChangedObservable.add((value) => {
-      console.log(`${name} Enabled:`, value);
+  modes.forEach((mode) => {
+    const button = Button.CreateSimpleButton(`${mode}ModeButton`, mode);
+    button.width = "80px";
+    button.height = "30px";
+    button.color = "white";
+    button.background = "gray";
+    button.isPointerBlocker = true; // Ensure button captures pointer events
+    button.onPointerUpObservable.add(() => {
+      console.log(`Mode switched to: ${mode}`); // Debug message
+      toggleMode(mode, modePanels);
     });
+    modeSelectionPanel.addControl(button);
 
-    const header = new TextBlock();
-    header.text = name;
-    header.width = "180px";
-    header.height = "20px";
-    header.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
-
-    const container = new StackPanel();
-    container.isVertical = false;
-    container.addControl(checkbox);
-    container.addControl(header);
-    appliancesCheckboxGroup.addControl(container);
+    // Create mode-specific panels
+    const panel = new StackPanel();
+    panel.isVisible = mode === "Basic"; // Only show Basic mode initially
+    panel.width = "300px";
+    panel.isVertical = true;
+    rootPanel.addControl(panel);
+    modePanels[mode] = panel;
   });
-  stackPanel.addControl(appliancesCheckboxGroup);
 
-  // Add radio buttons for meal type selection
-  const mealTypeGroup = new StackPanel();
-  mealTypeGroup.isVertical = true;
-  mealTypeGroup.width = "220px";
-
-  const mealTypes = ["Cooked", "Pre-Packaged", "Mixed"];
-  mealTypes.forEach((type) => {
-    const radioButton = new RadioButton();
-    radioButton.group = "mealType";
-    radioButton.width = "20px";
-    radioButton.height = "20px";
-    radioButton.color = "white";
-    radioButton.isChecked = type === "Cooked";
-    radioButton.onIsCheckedChangedObservable.add((checked) => {
-      if (checked) console.log("Meal Type:", type);
-    });
-
-    const header = new TextBlock();
-    header.text = type;
-    header.width = "180px";
-    header.height = "20px";
-    header.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
-
-    const container = new StackPanel();
-    container.isVertical = false;
-    container.addControl(radioButton);
-    container.addControl(header);
-    mealTypeGroup.addControl(container);
-  });
-  stackPanel.addControl(mealTypeGroup);
-
-  // Add a slider for the day-night cycle
-  const dayNightSlider = new Slider();
-  dayNightSlider.minimum = 0;
-  dayNightSlider.maximum = 24;
-  dayNightSlider.value = 12;
-  dayNightSlider.height = "20px";
-  dayNightSlider.width = "200px";
-  dayNightSlider.onValueChangedObservable.add((value) => {
-    console.log("Time of Day:", value, "hours");
-  });
-  addLabelToSlider(stackPanel, dayNightSlider, "Time of Day (hours):");
+  // Populate mode-specific panels
+  createBasicControls(modePanels["Basic"]);
+  createAdvancedControls(modePanels["Advanced"]);
+  createExpertControls(modePanels["Expert"]);
 }
 
-// Helper function to add a labeled slider
-function addLabelToSlider(parent: StackPanel, slider: Slider, labelText: string) {
-  const label = new TextBlock();
-  label.text = labelText;
-  label.height = "30px";
-  label.color = "white";
-  label.textHorizontalAlignment = TextBlock.HORIZONTAL_ALIGNMENT_LEFT;
-  parent.addControl(label);
-  parent.addControl(slider);
+// Helper to toggle between modes
+function toggleMode(activeMode: string, modePanels: { [x: string]: StackPanel }) {
+  Object.keys(modePanels).forEach((mode) => {
+    const panel = modePanels[mode];
+    panel.isVisible = mode === activeMode; // Show only the active mode panel
+    panel.markAsDirty(); // Force redraw to reflect visibility changes
+  });
+}
+
+// Basic Mode Controls
+function createBasicControls(panel: StackPanel) {
+  const title = createTitle("Basic Controls");
+  panel.addControl(title);
+
+  createSlider("Family Size:", 1, 6, 4, "Family Size", panel);
+  createSlider("Grocery Trip Frequency:", 1, 7, 3, "Grocery Frequency", panel);
+  createSlider("Meal Prep Frequency:", 1, 4, 2, "Meal Prep Frequency", panel);
+
+  const appliances = ["Dishwasher", "Microwave", "Oven"];
+  createCheckboxGroup(appliances, "Appliances Enabled", panel);
+}
+
+// Advanced Mode Controls
+function createAdvancedControls(panel: StackPanel) {
+  const title = createTitle("Advanced Controls");
+  panel.addControl(title);
+
+  const mealTypes = ["Cooked", "Pre-Packaged", "Mixed"];
+  createRadioGroup(mealTypes, "Meal Type", panel);
+
+  const dietaryOptions = ["Vegetarian", "Vegan", "Gluten-Free", "Custom"];
+  createCheckboxGroup(dietaryOptions, "Dietary Preferences", panel);
+
+  createSlider("Dishwasher Usage (times/day):", 0, 3, 1, "Dishwasher Usage", panel);
+  createSlider("Microwave Usage (times/day):", 0, 10, 5, "Microwave Usage", panel);
+  createSlider("Oven Usage (times/day):", 0, 5, 2, "Oven Usage", panel);
+}
+
+// Expert Mode Controls
+function createExpertControls(panel: StackPanel) {
+  const title = createTitle("Expert Controls");
+  panel.addControl(title);
+
+  createSlider("Time of Day (hours):", 0, 24, 12, "Time of Day", panel);
+  createCheckboxGroup(["Enable Seasonal Adjustments"], "Seasonal Settings", panel);
+
+  createSlider("Waste Disposal Frequency (days):", 1, 7, 3, "Waste Frequency", panel);
+  createSlider("Bin Capacity (liters):", 10, 50, 30, "Bin Capacity", panel);
+
+  createSlider("Lighting Brightness (%):", 0, 100, 75, "Lighting Brightness", panel);
+  createSlider("Color Temperature (K):", 2000, 6500, 4000, "Color Temperature", panel);
+
+  createSlider("Appliance Efficiency (%):", 50, 150, 100, "Efficiency", panel);
+
+  const roles = ["Cooking", "Cleaning", "Grocery Shopping"];
+  createCheckboxGroup(roles, "Assign Roles", panel);
 }
