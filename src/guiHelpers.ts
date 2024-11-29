@@ -1,91 +1,110 @@
-
-import { StackPanel, Slider, Checkbox, RadioButton, TextBlock, Control } from "@babylonjs/gui";
-
 // Helper to create sliders with labels
-export function createSlider(labelText: string, min: number, max: number, defaultValue: number, logLabel: string, panel: StackPanel) {
-    const label = new TextBlock();
-    label.text = labelText;
-    label.height = "30px";
-    label.color = "white";
-    label.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
-    panel.addControl(label);
+export function createSlider(labelText: string, min: number, max: number, defaultValue: number, logLabel: string, panel: HTMLElement) {
+    const container = document.createElement('div');
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = '1fr 1fr';
+    container.style.gap = '10px';
+    container.style.marginBottom = '10px';
 
-    const slider = new Slider();
-    slider.minimum = min;
-    slider.maximum = max;
-    slider.value = defaultValue;
-    slider.height = "20px";
-    slider.width = "250px";
-    slider.onValueChangedObservable.add((value) => {
-        console.log(`${logLabel}:`, value);
-    });
-    panel.addControl(slider);
+    const label = document.createElement('label');
+    label.innerText = labelText;
+    container.appendChild(label);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = min.toString();
+    slider.max = max.toString();
+    slider.value = defaultValue.toString();
+    slider.oninput = () => {
+        console.log(`${logLabel}:`, slider.value);
+    };
+    container.appendChild(slider);
+
+    panel.appendChild(container);
 }
 
 // Helper to create a checkbox group
-export function createCheckboxGroup(options: string[], logLabel: string, panel: StackPanel) {
+export function createCheckboxGroup(options: string[], logLabel: string, panel: HTMLElement) {
     options.forEach((option) => {
-        const checkbox = new Checkbox();
-        checkbox.width = "20px";
-        checkbox.height = "20px";
-        checkbox.isChecked = true;
-        checkbox.color = "white";
-        checkbox.onIsCheckedChangedObservable.add((value) => {
-            console.log(`${logLabel} ${option}:`, value);
-        });
+        const container = document.createElement('div');
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'auto 1fr';
+        container.style.gap = '10px';
+        container.style.marginBottom = '10px';
 
-        const header = new TextBlock();
-        header.text = option;
-        header.width = "200px";
-        header.height = "30px";
-        header.color = "white";
-        header.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        checkbox.onchange = () => {
+            console.log(`${logLabel} ${option}:`, checkbox.checked);
+        };
+        container.appendChild(checkbox);
 
-        const container = new StackPanel();
-        container.isVertical = false;
-        container.addControl(checkbox);
-        container.addControl(header);
+        const label = document.createElement('label');
+        label.innerText = option;
+        container.appendChild(label);
 
-        panel.addControl(container);
+        panel.appendChild(container);
     });
 }
 
 // Helper to create radio buttons
-export function createRadioGroup(options: string[], logLabel: string, panel: StackPanel) {
+export function createRadioGroup(options: string[], logLabel: string, panel: HTMLElement) {
     options.forEach((option) => {
-        const radioButton = new RadioButton();
-        radioButton.group = "radioGroup";
-        radioButton.width = "20px";
-        radioButton.height = "20px";
-        radioButton.color = "white";
-        radioButton.isChecked = option === options[0]; // Default first option checked
-        radioButton.onIsCheckedChangedObservable.add((checked) => {
-            if (checked) console.log(`${logLabel}:`, option);
-        });
+        const container = document.createElement('div');
+        container.style.display = 'grid';
+        container.style.gridTemplateColumns = 'auto 1fr';
+        container.style.gap = '10px';
+        container.style.marginBottom = '10px';
 
-        const header = new TextBlock();
-        header.text = option;
-        header.width = "200px";
-        header.height = "30px";
-        header.color = "white";
-        header.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+        const radioButton = document.createElement('input');
+        radioButton.type = 'radio';
+        radioButton.name = logLabel;
+        radioButton.checked = option === options[0];
+        radioButton.onchange = () => {
+            if (radioButton.checked) console.log(`${logLabel}:`, option);
+        };
+        container.appendChild(radioButton);
 
-        const container = new StackPanel();
-        container.isVertical = false;
-        container.addControl(radioButton);
-        container.addControl(header);
+        const label = document.createElement('label');
+        label.innerText = option;
+        container.appendChild(label);
 
-        panel.addControl(container);
+        panel.appendChild(container);
     });
 }
 
 // Helper to create titles
 export function createTitle(text: string) {
-    const title = new TextBlock();
-    title.text = text;
-    title.height = "40px";
-    title.color = "white";
-    title.fontSize = "20px";
-    title.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_LEFT;
+    const title = document.createElement('h3');
+    title.innerText = text;
+    title.style.marginBottom = '10px';
     return title;
+}
+
+// Make the container draggable
+export function makeDraggable(element: HTMLElement) {
+    let isDragging = false;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    element.onmousedown = (e) => {
+        if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'BUTTON') {
+            return;
+        }
+        isDragging = true;
+        offsetX = e.clientX - element.offsetLeft;
+        offsetY = e.clientY - element.offsetTop;
+        document.onmousemove = (e) => {
+            if (isDragging) {
+                element.style.left = `${e.clientX - offsetX}px`;
+                element.style.top = `${e.clientY - offsetY}px`;
+            }
+        };
+        document.onmouseup = () => {
+            isDragging = false;
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    };
 }
