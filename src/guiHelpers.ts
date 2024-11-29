@@ -198,3 +198,34 @@ export function createToggleButton(text: string, onClick: () => void) {
     button.onclick = onClick;
     return button;
 }
+
+// Helper to create collapsible sections
+export function createCollapsibleSection(titleText: string, panel: HTMLElement) {
+    const section = document.createElement('div');
+    section.style.marginBottom = '10px';
+
+    const header = document.createElement('button');
+    header.innerText = titleText;
+    header.style.width = '100%';
+    header.style.padding = '10px';
+    header.style.border = 'none';
+    header.style.borderRadius = '4px';
+    header.style.backgroundColor = 'gray';
+    header.style.color = 'white';
+    header.style.cursor = 'pointer';
+    header.onclick = () => {
+        content.style.display = content.style.display === 'none' ? 'block' : 'none';
+    };
+    section.appendChild(header);
+
+    const content = document.createElement('div');
+    content.style.display = 'none';
+    content.style.padding = '10px';
+    content.style.border = '1px solid gray';
+    content.style.borderRadius = '4px';
+    content.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    section.appendChild(content);
+
+    panel.appendChild(section);
+    return content;
+}
