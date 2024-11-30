@@ -1,4 +1,4 @@
-import { setDimensions } from '../../app/roomStore';
+import { setRoomState } from '../../app/roomStore';
 import { createSlider, createCheckboxGroup, createTitle, createToggleButton, createCollapsibleSection } from '../../guiHelpers';
 import { applyRoomDimensions, applyMealSettings, applyEnergySettings, applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
 
@@ -98,11 +98,11 @@ export function addBasicControls(panel: HTMLElement) {
                     break;
                 case 'slider-room-width':
                     updates.roomWidth = parseInt(target.value);
-                    setDimensions(updates.roomWidth, basicStore.getState().roomLength);
+                    setRoomState({ dimensions: { width: updates.roomWidth, height: basicStore.getState().roomLength } });
                     break;
                 case 'slider-room-length':
                     updates.roomLength = parseInt(target.value);
-                    setDimensions(basicStore.getState().roomWidth, updates.roomLength);
+                    setRoomState({ dimensions: { width: basicStore.getState().roomWidth, height: updates.roomLength } });
                     break;
                 case 'slider-ceiling-height':
                     updates.ceilingHeight = parseInt(target.value);

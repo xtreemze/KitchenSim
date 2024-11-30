@@ -1,31 +1,81 @@
 import { Mesh } from '@babylonjs/core';
-import { setDimensions, setWallHeight, setWallThickness, getWallHeight, getWallThickness } from './roomStore';
+import { setRoomState, getRoomState } from './roomStore';
 
 let floor: Mesh, walls: Mesh[], ceiling: Mesh;
 
+const DEFAULT_FLOOR_THICKNESS = 0.1;
+
+/**
+ * Updates the dimensions of the room and scales the meshes accordingly.
+ *
+ * @param width - The new width of the room in meters.
+ * @param height - The new height of the room in meters.
+ */
 function updateDimensions(width: number, height: number) {
-    setDimensions(width, height);
-    floor.scaling.set(width / floor.scaling.x, 1, height / floor.scaling.z);
-    walls[0].scaling.set(width / walls[0].scaling.x, getWallHeight() / walls[0].scaling.y, getWallThickness() / walls[0].scaling.z);
-    walls[1].scaling.set(width / walls[1].scaling.x, getWallHeight() / walls[1].scaling.y, getWallThickness() / walls[1].scaling.z);
-    walls[2].scaling.set(getWallThickness() / walls[2].scaling.x, getWallHeight() / walls[2].scaling.y, height / walls[2].scaling.z);
-    walls[3].scaling.set(getWallThickness() / walls[3].scaling.x, getWallHeight() / walls[3].scaling.y, height / walls[3].scaling.z);
-    ceiling.scaling.set(width / ceiling.scaling.x, getWallThickness() / ceiling.scaling.y, height / ceiling.scaling.z);
+    setRoomState({ dimensions: { width, height } });
+    const { wallHeight, wallThickness } = getRoomState();
+
+    scaleMesh(floor, width, DEFAULT_FLOOR_THICKNESS, height);
+    scaleMesh(ceiling, width, wallThickness, height);
+
+    walls.forEach((wall, index) => {
+        if (index < 2) {
+            scaleMesh(wall, width, wallHeight, wallThickness);
+            wall.position.set(0, wallHeight / 2, index === 0 ? -height / 2 : height / 2);
+        } else {
+            scaleMesh(wall, wallThickness, wallHeight, height);
+            wall.position.set(index === 2 ? -width / 2 : width / 2, wallHeight / 2, 0);
+        }
+    });
 }
 
+/**
+ * Updates the height of the walls and scales the meshes accordingly.
+ *
+ * @param height - The new height of the walls in meters.
+ */
 function updateWallHeight(height: number) {
-    setWallHeight(height);
-    walls.forEach(wall => wall.scaling.y = height / wall.scaling.y);
+    setRoomState({ wallHeight: height });
+    const { wallThickness } = getRoomState();
+
+    walls.forEach(wall => {
+        scaleMesh(wall, wall.scaling.x, height, wall.scaling.z);
+        wall.position.y = height / 2;
+    });
+
     ceiling.position.y = height;
+    scaleMesh(ceiling, ceiling.scaling.x, wallThickness, ceiling.scaling.z);
 }
 
+/**
+ * Updates the thickness of the walls and scales the meshes accordingly.
+ *
+ * @param thickness - The new thickness of the walls in meters.
+ */
 function updateWallThickness(thickness: number) {
-    setWallThickness(thickness);
-    walls[0].scaling.z = thickness / walls[0].scaling.z;
-    walls[1].scaling.z = thickness / walls[1].scaling.z;
-    walls[2].scaling.x = thickness / walls[2].scaling.x;
-    walls[3].scaling.x = thickness / walls[3].scaling.x;
-    ceiling.scaling.y = thickness / ceiling.scaling.y;
+    setRoomState({ wallThickness: thickness });
+
+    walls.forEach((wall, index) => {
+        if (index < 2) {
+            scaleMesh(wall, wall.scaling.x, wall.scaling.y, thickness);
+        } else {
+            scaleMesh(wall, thickness, wall.scaling.y, wall.scaling.z);
+        }
+    });
+
+    scaleMesh(ceiling, ceiling.scaling.x, thickness, ceiling.scaling.z);
+}
+
+/**
+ * Scales a mesh to the specified dimensions.
+ *
+ * @param mesh - The mesh to scale.
+ * @param x - The new width of the mesh in meters.
+ * @param y - The new height of the mesh in meters.
+ * @param z - The new depth of the mesh in meters.
+ */
+function scaleMesh(mesh: Mesh, x: number, y: number, z: number) {
+    mesh.scaling.set(x, y, z);
 }
 
 export { updateDimensions, updateWallHeight, updateWallThickness };
