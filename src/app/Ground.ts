@@ -1,33 +1,6 @@
-import { Scene, MeshBuilder, StandardMaterial, Mesh } from '@babylonjs/core';
-import { MarbleProceduralTexture, WoodProceduralTexture, GrassProceduralTexture } from '@babylonjs/procedural-textures';
-import { getDimensions, getWallHeight, getWallThickness } from './roomStore';
-import { updateDimensions, updateWallHeight, updateWallThickness } from './updateFunctions';
-
-function createMarbleMaterial(scene: Scene): StandardMaterial {
-    const marbleMaterial = new StandardMaterial("marbleMat", scene);
-    const marbleTexture = new MarbleProceduralTexture("marbleTex", 1024, scene);
-    marbleTexture.numberOfTilesHeight = 8;
-    marbleTexture.numberOfTilesWidth = 8;
-    marbleMaterial.ambientTexture = marbleTexture;
-    return marbleMaterial;
-}
-
-function createWoodMaterial(scene: Scene): StandardMaterial {
-    const woodMaterial = new StandardMaterial("woodMat", scene);
-    const woodTexture = new WoodProceduralTexture("woodTex", 1024, scene);
-    woodTexture.ampScale = 80.0;
-    woodMaterial.diffuseTexture = woodTexture;
-    woodMaterial.backFaceCulling = false; // Ensure the material is visible from inside
-    woodMaterial.alpha = 0.5; // Make the outer side transparent
-    return woodMaterial;
-}
-
-function createGrassMaterial(scene: Scene): StandardMaterial {
-    const grassMaterial = new StandardMaterial("grassMat", scene);
-    const grassTexture = new GrassProceduralTexture("grassTex", 2048, scene);
-    grassMaterial.diffuseTexture = grassTexture;
-    return grassMaterial;
-}
+import { Scene, MeshBuilder, Mesh } from '@babylonjs/core';
+import { getDimensions, getWallHeight, getWallThickness, setDimensions, setWallHeight, setWallThickness } from './roomStore';
+import { createMarbleMaterial, createWoodMaterial, createGrassMaterial } from './materials';
 
 let floor: Mesh, extendedGround: Mesh, walls: Mesh[], ceiling: Mesh;
 
@@ -63,6 +36,44 @@ export function createGround(scene: Scene): void {
     ceiling = MeshBuilder.CreateBox("ceiling", { width: groundWidth, height: wallThickness, depth: groundHeight }, scene);
     ceiling.position.y = wallHeight;
     ceiling.material = wallAndCeilingMaterial;
+}
+
+function updateDimensions(width: number, height: number) {
+    setDimensions(width, height);
+    floor.scaling.set(width / floor.scaling.x, 1, height / floor.scaling.z);
+    walls[0].scaling.set(width / walls[0].scaling.x, getWallHeight() / walls[0].scaling.y, getWallThickness() / walls[0].scaling.z);
+    walls[1].scaling.set(width / walls[1].scaling.x, getWallHeight() / walls[1].scaling.y, getWallThickness() / walls[1].scaling.z);
+    walls[2].scaling.set(getWallThickness() / walls[2].scaling.x, getWallHeight() / walls[2].scaling.y, height / walls[2].scaling.z);
+    walls[3].scaling.set(getWallThickness() / walls[3].scaling.x, getWallHeight() / walls[3].scaling.y, height / walls[3].scaling.z);
+
+    walls[0].position.set(0, getWallHeight() / 2, -height / 2);
+    walls[1].position.set(0, getWallHeight() / 2, height / 2);
+    walls[2].position.set(-width / 2, getWallHeight() / 2, 0);
+    walls[3].position.set(width / 2, getWallHeight() / 2, 0);
+
+    ceiling.scaling.set(width / ceiling.scaling.x, getWallThickness() / ceiling.scaling.y, height / ceiling.scaling.z);
+}
+
+function updateWallHeight(height: number) {
+    setWallHeight(height);
+    walls.forEach(wall => wall.scaling.y = height / wall.scaling.y);
+    ceiling.position.y = height;
+    floor.position.y = height / 2;
+
+    walls[0].position.set(0, height / 2, -getDimensions().height / 2);
+    walls[1].position.set(0, height / 2, getDimensions().height / 2);
+    walls[2].position.set(-getDimensions().width / 2, height / 2, 0);
+    walls[3].position.set(getDimensions().width / 2, height / 2, 0);
+}
+
+function updateWallThickness(thickness: number) {
+    setWallThickness(thickness);
+    walls[0].scaling.z = thickness / walls[0].scaling.z;
+    walls[1].scaling.z = thickness / walls[1].scaling.z;
+    walls[2].scaling.x = thickness / walls[2].scaling.x;
+    walls[3].scaling.x = thickness / walls[3].scaling.x;
+    ceiling.scaling.y = thickness / ceiling.scaling.y;
+    floor.scaling.y = thickness / floor.scaling.y;
 }
 
 export { updateDimensions, updateWallHeight, updateWallThickness };

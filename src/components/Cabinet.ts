@@ -1,4 +1,5 @@
-import { MeshBuilder, Scene, StandardMaterial, Color3, Vector3, Mesh, NoiseProceduralTexture, Animation, TransformNode } from '@babylonjs/core';
+import { MeshBuilder, Scene, Vector3, Animation, TransformNode } from '@babylonjs/core';
+import { createCabinetMaterial, createHandle, createHinge } from './cabinetUtils';
 
 // Configuration for IKEA cabinet dimensions and properties
 const CABINET_CONFIG = [
@@ -75,7 +76,6 @@ const DEFAULT_SCENE_BOUNDS = {
 
 const SHELF_THICKNESS = 0.02;
 const HANDLE_DIMENSIONS = { width: 0.02, height: 0.02, depth: 0.1 };
-const HINGE_DIMENSIONS = { diameter: 0.02, height: 0.1 };
 const DRAWER_SLIDE_DIMENSIONS = { width: 0.02, height: 0.02 };
 const DRAWER_ANIMATION_FRAMES = 30;
 const DRAWER_ANIMATION_DISTANCE = 0.3;
@@ -85,56 +85,6 @@ const SHELF_SPACING = 30; // cm
 const HANDLE_OFFSET = 0.01;
 const HINGE_OFFSET = 0.05;
 const HINGE_DEPTH_OFFSET = 0.03;
-
-// Utility function to create procedural Standard materials
-function createCabinetMaterial(scene: Scene, color: string, materialType: string): StandardMaterial {
-    const material = new StandardMaterial("material", scene);
-
-    switch (materialType) {
-        case "Particleboard":
-            material.diffuseColor = new Color3(0.8, 0.7, 0.6); // Light brown
-            material.specularColor = new Color3(0.1, 0.1, 0.1);
-            break;
-        case "Foil":
-            material.diffuseColor = new Color3(0.9, 0.9, 0.9); // Light grey
-            material.specularColor = new Color3(0.2, 0.2, 0.2);
-            break;
-        case "Glass":
-            material.diffuseColor = new Color3(0.9, 0.9, 1.0); // Light blue
-            material.specularColor = new Color3(0.5, 0.5, 0.5);
-            material.alpha = 0.5;
-            break;
-        default:
-            material.diffuseColor = Color3.FromHexString(color); // Default to provided color
-            material.specularColor = new Color3(0.1, 0.1, 0.1);
-            break;
-    }
-
-    // Generate noise texture for realistic surface
-    const noiseTexture = new NoiseProceduralTexture("noise", 32, scene);
-    noiseTexture.animationSpeedFactor = 0;
-    noiseTexture.persistence = 2;
-    noiseTexture.brightness = 0.5;
-    noiseTexture.octaves = 4;
-    material.bumpTexture = noiseTexture;
-
-    return material;
-}
-
-// Utility function to create a handle
-function createHandle(name: string, parent: Mesh, position: Vector3, scene: Scene): void {
-    const handle = MeshBuilder.CreateBox(name, HANDLE_DIMENSIONS, scene);
-    handle.position = position;
-    handle.parent = parent;
-}
-
-// Utility function to create a hinge
-function createHinge(name: string, parent: Mesh, position: Vector3, scene: Scene): void {
-    const hinge = MeshBuilder.CreateCylinder(name, HINGE_DIMENSIONS, scene);
-    hinge.position = position;
-    hinge.rotation.x = Math.PI / 2;
-    hinge.parent = parent;
-}
 
 // Apply position constraints
 function applyPositionConstraints(position: Vector3, constraints: typeof POSITION_CONSTRAINTS): Vector3 {

@@ -1,3 +1,4 @@
+import { setDimensions } from '../../app/roomStore';
 import { createSlider, createCheckboxGroup, createTitle, createToggleButton, createCollapsibleSection } from '../../guiHelpers';
 import { applyRoomDimensions, applyMealSettings, applyEnergySettings, applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
 
@@ -78,7 +79,7 @@ export function addBasicControls(panel: HTMLElement) {
 
     // Apply settings when inputs change
     panel.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', (event) => {
+        input.addEventListener('input', (event) => {
             const target = event.target as HTMLInputElement;
             const updates: Partial<StoreState> = {};
 
@@ -97,9 +98,11 @@ export function addBasicControls(panel: HTMLElement) {
                     break;
                 case 'slider-room-width':
                     updates.roomWidth = parseInt(target.value);
+                    setDimensions(updates.roomWidth, basicStore.getState().roomLength);
                     break;
                 case 'slider-room-length':
                     updates.roomLength = parseInt(target.value);
+                    setDimensions(basicStore.getState().roomWidth, updates.roomLength);
                     break;
                 case 'slider-ceiling-height':
                     updates.ceilingHeight = parseInt(target.value);
