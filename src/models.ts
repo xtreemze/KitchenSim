@@ -194,16 +194,33 @@ export function getTimeOfDay(scene?: Scene): number {
 
         if (timeOfDay >= sunrise && timeOfDay <= sunset) {
             skyMaterial.inclination = (timeOfDay - 12) / dayDuration; // Daytime
-            skyMaterial.luminance = 0.5
+            skyMaterial.luminance = Math.max(0, 1.189 - (timeOfDay - sunrise) / dayDuration * 1.189); // Gradually decrease luminosity
         } else {
             if (timeOfDay > sunset) {
                 skyMaterial.inclination = 0.5; // Nighttime after sunset
-                skyMaterial.luminance = Math.min(0.5, Math.max(0, (timeOfDay - sunset) / nightDuration)); // Gradually increase luminosity
+                skyMaterial.luminance = Math.min(1.189, (timeOfDay - sunset) / nightDuration * 1.189); // Gradually increase luminosity
             } else {
                 skyMaterial.inclination = -0.5; // Nighttime before sunrise
-                skyMaterial.luminance = Math.min(0.5, (sunrise - timeOfDay) / nightDuration); // Gradually increase luminosity
+                skyMaterial.luminance = Math.min(1.189, (sunrise - timeOfDay) / nightDuration * 1.189); // Gradually increase luminosity
             }
         }
     }
     return timeOfDay;
+}
+
+export function applyCabinetAnimationSettings(settings: { openDoorDrawerAnimation: boolean }) {
+    console.log('Applying Cabinet Animation Settings:', settings);
+    const cabinetMeshes = scene.getMeshesByTags("cabinet");
+    cabinetMeshes.forEach(mesh => {
+        if (settings.openDoorDrawerAnimation) {
+            mesh.animations.forEach(animation => {
+                animation.enableBlending = true;
+                animation.blendingSpeed = 0.05;
+            });
+        } else {
+            mesh.animations.forEach(animation => {
+                animation.enableBlending = false;
+            });
+        }
+    });
 }

@@ -1,5 +1,5 @@
 import { createSlider, createCheckboxGroup, createRadioGroup, createTitle, createCollapsibleSection } from '../../guiHelpers';
-import { applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
+import { applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings, applyCabinetAnimationSettings } from '../../models';
 
 interface StoreState {
     lightIntensity: number;
@@ -16,6 +16,7 @@ interface StoreState {
     roleWeightingCleaning: number;
     simulationSpeed: number;
     recyclingRegion: string;
+    openDoorDrawerAnimation: boolean; // New property
 }
 
 const initialState: StoreState = {
@@ -32,8 +33,10 @@ const initialState: StoreState = {
     roleWeightingCooking: 70,
     roleWeightingCleaning: 30,
     simulationSpeed: 1,
-    recyclingRegion: 'USA'
+    recyclingRegion: 'USA',
+    openDoorDrawerAnimation: false // New property
 };
+
 
 class Store {
     private state: StoreState;
@@ -68,12 +71,10 @@ export function addAdvancedControls(panel: HTMLElement) {
     panel.appendChild(feedbackSection);
 
     const storageSection = createCollapsibleSection('Storage Settings', panel);
-    createSlider('Cabinet Width', 1, 10, 2, storageSection, 'meters');
-    createSlider('Cabinet Height', 1, 3, 2, storageSection, 'meters');
-    createSlider('Cabinet Depth', 0.5, 2, 1, storageSection, 'meters');
     createSlider('Pantry Volume', 50, 500, 100, storageSection, 'liters');
     createSlider('Shelf Volume', 50, 500, 100, storageSection, 'liters');
     createSlider('Drawer Volume', 50, 500, 100, storageSection, 'liters');
+    createCheckboxGroup(['Open Door and Drawer Animation'], 'Cabinet Animations', storageSection); // New checkbox
     panel.appendChild(storageSection);
 
     const mealSection = createCollapsibleSection('Meal Settings', panel);
@@ -129,7 +130,9 @@ export function addAdvancedControls(panel: HTMLElement) {
                     updates.simulationSpeed = parseFloat(target.value);
                     break;
                 default:
-                    if (target.name === 'radio-regional-recycling-rules') {
+                    if (target.name === 'checkbox-open-door-drawer-animation') {
+                        updates.openDoorDrawerAnimation = target.checked;
+                    } else if (target.name === 'radio-regional-recycling-rules') {
                         updates.recyclingRegion = target.value;
                     } else if (target.name === 'checkbox-dynamic-waste-categories') {
                         updates.wasteCategories = Array.from(document.querySelectorAll('input#checkbox-dynamic-waste-categories:checked'))
@@ -153,6 +156,9 @@ export function addAdvancedControls(panel: HTMLElement) {
             applyApplianceSettings({ applianceEfficiency: state.applianceEfficiency, ventilationSpeed: state.ventilationSpeed, ventilationControls: state.ventilationControls });
             applyRoleSettings({ roles: state.roles, roleWeightingCooking: state.roleWeightingCooking, roleWeightingCleaning: state.roleWeightingCleaning });
             applySimulationSettings({ simulationSpeed: state.simulationSpeed, recyclingRegion: state.recyclingRegion });
+
+            // Apply the new setting
+            applyCabinetAnimationSettings({ openDoorDrawerAnimation: state.openDoorDrawerAnimation });
         });
     });
 }
