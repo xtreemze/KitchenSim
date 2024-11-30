@@ -14,4 +14,10 @@ export function createHinge(name: string, parent: Mesh, position: Vector3, scene
     hinge.parent = parent;
 }
 
+export function createShelf(name: string, parent: Mesh, position: Vector3, dimensions: { width: number, depth: number }, scene: Scene): void {
+    const shelf = MeshBuilder.CreateBox(name, { width: dimensions.width, height: 0.02, depth: dimensions.depth }, scene);
+    shelf.position = position;
+    shelf.parent = parent;
+}
+
 export { createCabinetMaterial };

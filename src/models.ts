@@ -1,5 +1,5 @@
 import { SkyMaterial } from '@babylonjs/materials';
-import { getStore as getExpertStore } from './components/expert/ExpertControls';
+import { getStore as getExpertStore } from './components/settings/ExpertControls';
 
 export function applyRoomDimensions(dimensions: { width: number, length: number, height: number }) {
     console.log('Applying Room Dimensions:', dimensions);

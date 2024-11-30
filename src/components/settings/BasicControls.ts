@@ -32,7 +32,7 @@ class Store {
     }
 
     getState() {
-        return this.state;
+        return { ...this.state };
     }
 
     updateState(updates: Partial<StoreState>) {
@@ -40,7 +40,7 @@ class Store {
     }
 }
 
-const basicStore = new Store();
+export const basicStore = new Store();
 
 export function addBasicControls(panel: HTMLElement) {
     const title = createTitle('Basic Controls');
@@ -67,9 +67,9 @@ export function addBasicControls(panel: HTMLElement) {
     panel.appendChild(familySection);
 
     const roomSection = createCollapsibleSection('Room Dimensions', panel);
-    createSlider('Room Width', 2, 20, 10, roomSection, 'meters');
-    createSlider('Room Length', 2, 20, 10, roomSection, 'meters');
-    createSlider('Ceiling Height', 2, 5, 3, roomSection, 'meters');
+    createSlider('Room Width', 4, 40, 25, roomSection, 'meters');
+    createSlider('Room Length', 4, 40, 25, roomSection, 'meters');
+    createSlider('Ceiling Height', 3, 15, 4, roomSection, 'meters');
     panel.appendChild(roomSection);
 
     const applianceSection = createCollapsibleSection('Appliance Settings', panel);

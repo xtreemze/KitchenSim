@@ -81,9 +81,9 @@ const DRAWER_ANIMATION_FRAMES = 30;
 const DRAWER_ANIMATION_DISTANCE = 0.3;
 const DOOR_ANIMATION_FRAMES = 30;
 const DOOR_ANIMATION_ANGLE = Math.PI / 2;
-const SHELF_SPACING = 30; // cm
+// const SHELF_SPACING = 30; // cm
 const HANDLE_OFFSET = 0.01;
-const HINGE_OFFSET = 0.05;
+// const HINGE_OFFSET = 0.05;
 const HINGE_DEPTH_OFFSET = 0.03;
 
 // Apply position constraints
@@ -118,6 +118,7 @@ function validateConfig(config: typeof CABINET_CONFIG[0]): void {
 function createCabinetGeometry(config: { name: string; dimensions: { width: number; height: number; depth: number }; weight: number; materials: string; colors: string[]; idealHeight: number }, scene: Scene): TransformNode {
     // Create an origin point for the cabinet
     const origin = new TransformNode(config.name + "_origin", scene);
+    origin.position.y = 0.5; // Adjust origin to y=0.5
 
     // Outer shell
     const shell = MeshBuilder.CreateBox("shell", {
@@ -125,36 +126,43 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         height: config.dimensions.height / 100, // Convert to meters
         depth: config.dimensions.depth / 100, // Convert to meters
     }, scene);
-    shell.position = new Vector3(0, config.dimensions.height / 200, 0); // Centered vertically
+    shell.position = new Vector3(0, config.dimensions.height / 200 + 0.5, 0); // Centered vertically
     shell.material = createCabinetMaterial(scene, config.colors[0], config.materials.split(", ")[0]);
     shell.parent = origin;
 
     // Internal shelves
-    const shelfCount = Math.floor(config.dimensions.height / SHELF_SPACING); // Example: shelves every 30 cm
-    for (let i = 1; i < shelfCount; i++) {
-        const shelf = MeshBuilder.CreateBox(`shelf${i}`, {
-            width: (config.dimensions.width - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
-            height: SHELF_THICKNESS, // Thin shelf
-            depth: (config.dimensions.depth - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
+    const shelfPositions: { [key: string]: number[] } = {
+        "Base Cabinet": [0.77, 1.03],
+        "Wall Cabinet": [0.6],
+        "Tall Cabinet": [1.0, 1.5, 1.75],
+        "Corner Base Cabinet": [0.77],
+        "Drawer Base Cabinet": [],
+        "Glass Door Wall Cabinet": [0.6],
+        "Pantry Cabinet": [0.94, 1.38, 1.82, 2.06]
+    };
+
+    const shelves = shelfPositions[config.name] || [];
+    shelves.forEach((pos: number, index: number) => {
+        createShelf(`shelf${index + 1}`, origin, new Vector3(0, pos, 0), {
+            width: (config.dimensions.width - 4) / 100,
+            depth: (config.dimensions.depth - 4) / 100
         }, scene);
-        shelf.position = new Vector3(0, (config.dimensions.height / 100) * (i / shelfCount) - (config.dimensions.height / 200), 0);
-        shelf.parent = origin;
-    }
+    });
 
     // Doors or drawers
     if (config.name.includes("Drawer")) {
-        const drawerCount = 3; // Example: 3 drawers
-        for (let i = 0; i < drawerCount; i++) {
-            const drawer = MeshBuilder.CreateBox(`drawer${i}`, {
+        const drawerPositions = [0.63, 0.9, 1.17];
+        drawerPositions.forEach((pos, index) => {
+            const drawer = MeshBuilder.CreateBox(`drawer${index + 1}`, {
                 width: (config.dimensions.width - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
-                height: (config.dimensions.height / drawerCount - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
+                height: (config.dimensions.height / 3 - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
                 depth: (config.dimensions.depth - 4) / 100, // Adjusted to fit inside the cabinet, convert to meters
             }, scene);
-            drawer.position = new Vector3(0, (config.dimensions.height / 100) * (i / drawerCount) - (config.dimensions.height / 200) + (config.dimensions.height / (2 * drawerCount)) / 100, config.dimensions.depth / 200);
+            drawer.position = new Vector3(0, pos, config.dimensions.depth / 200);
             drawer.parent = origin;
 
             // Add drawer animation
-            const drawerAnimation = new Animation(`drawerAnimation${i}`, "position.z", DRAWER_ANIMATION_FRAMES, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
+            const drawerAnimation = new Animation(`drawerAnimation${index + 1}`, "position.z", DRAWER_ANIMATION_FRAMES, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CYCLE);
             const drawerKeys = [
                 { frame: 0, value: drawer.position.z },
                 { frame: DRAWER_ANIMATION_FRAMES, value: drawer.position.z + DRAWER_ANIMATION_DISTANCE }
@@ -163,17 +171,17 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
             drawer.animations = [drawerAnimation];
 
             // Add handle to drawer
-            createHandle(`handle${i}`, drawer, new Vector3(0, 0, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
+            createHandle(`handle${index + 1}`, drawer, new Vector3(0, 0, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
 
             // Add drawer slides
-            const slideLeft = MeshBuilder.CreateBox(`slideLeft${i}`, DRAWER_SLIDE_DIMENSIONS, scene);
+            const slideLeft = MeshBuilder.CreateBox(`slideLeft${index + 1}`, DRAWER_SLIDE_DIMENSIONS, scene);
             slideLeft.position = new Vector3(-config.dimensions.width / 200 + HANDLE_OFFSET, 0, 0);
             slideLeft.parent = drawer;
 
-            const slideRight = MeshBuilder.CreateBox(`slideRight${i}`, DRAWER_SLIDE_DIMENSIONS, scene);
+            const slideRight = MeshBuilder.CreateBox(`slideRight${index + 1}`, DRAWER_SLIDE_DIMENSIONS, scene);
             slideRight.position = new Vector3(config.dimensions.width / 200 - HANDLE_OFFSET, 0, 0);
             slideRight.parent = drawer;
-        }
+        });
     } else {
         const doorLeft = MeshBuilder.CreateBox("doorLeft", {
             width: (config.dimensions.width / 200), // Convert to meters
@@ -182,7 +190,7 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         }, scene);
         doorLeft.position = new Vector3(
             -(config.dimensions.width / 400),
-            0,
+            0.5,
             config.dimensions.depth / 200
         );
         doorLeft.parent = origin;
@@ -194,7 +202,7 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         }, scene);
         doorRight.position = new Vector3(
             config.dimensions.width / 400,
-            0,
+            0.5,
             config.dimensions.depth / 200
         );
         doorRight.parent = origin;
@@ -217,12 +225,24 @@ function createCabinetGeometry(config: { name: string; dimensions: { width: numb
         doorRight.animations = [doorRightAnimation];
 
         // Add handles to doors
-        createHandle("handleLeft", doorLeft, new Vector3(-(config.dimensions.width / 400) - HANDLE_DIMENSIONS.width, 0, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
-        createHandle("handleRight", doorRight, new Vector3(config.dimensions.width / 400 + HANDLE_OFFSET, 0, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
+        createHandle("handleLeft", doorLeft, new Vector3(-(config.dimensions.width / 400) - HANDLE_DIMENSIONS.width, 0.5, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
+        createHandle("handleRight", doorRight, new Vector3(config.dimensions.width / 400 + HANDLE_OFFSET, 0.5, config.dimensions.depth / 200 + HANDLE_DIMENSIONS.depth), scene);
 
         // Add hinges to doors
-        createHinge("hingeLeft", doorLeft, new Vector3(-(config.dimensions.width / 400) - HANDLE_OFFSET, config.dimensions.height / 200 - (config.dimensions.height / 200) + HINGE_OFFSET, config.dimensions.depth / 200 - HINGE_DEPTH_OFFSET), scene);
-        createHinge("hingeRight", doorRight, new Vector3(config.dimensions.width / 400 + HANDLE_OFFSET, config.dimensions.height / 200 - (config.dimensions.height / 200) + HINGE_OFFSET, config.dimensions.depth / 200 - HINGE_DEPTH_OFFSET), scene);
+        const hingePositions: { [key: string]: number[] } = {
+            "Base Cabinet": [0.6, 0.2],
+            "Wall Cabinet": [0.3, 0.1],
+            "Tall Cabinet": [1.75, 1.25, 0.75, 0.25],
+            "Corner Base Cabinet": [0.6, 0.2],
+            "Glass Door Wall Cabinet": [0.3, 0.1],
+            "Pantry Cabinet": [2.0, 1.5, 1.0, 0.5]
+        };
+
+        const hinges = hingePositions[config.name] || [];
+        hinges.forEach((pos: number, index: number) => {
+            createHinge(`hinge${index + 1}`, doorLeft, new Vector3(-(config.dimensions.width / 400) - HANDLE_OFFSET, pos + 0.5, config.dimensions.depth / 200 - HINGE_DEPTH_OFFSET), scene);
+            createHinge(`hinge${index + 1}`, doorRight, new Vector3(config.dimensions.width / 400 + HANDLE_OFFSET, pos + 0.5, config.dimensions.depth / 200 - HINGE_DEPTH_OFFSET), scene);
+        });
     }
 
     return origin;
@@ -260,3 +280,14 @@ export function generateCabinet(type: string, position: Vector3, scene: Scene, s
         console.error("Failed to create cabinet:", error);
     }
 }
+function createShelf(name: string, parent: TransformNode, position: Vector3, dimensions: { width: number; depth: number }, scene: Scene): void {
+    const shelf = MeshBuilder.CreateBox(name, {
+        width: dimensions.width,
+        height: SHELF_THICKNESS,
+        depth: dimensions.depth
+    }, scene);
+    shelf.position = position;
+    shelf.parent = parent;
+    shelf.material = createCabinetMaterial(scene, "#FFFFFF", "Particleboard"); // Example material
+}
+

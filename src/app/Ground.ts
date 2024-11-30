@@ -1,10 +1,15 @@
 import { Scene, MeshBuilder, Mesh } from '@babylonjs/core';
 import { getDimensions, getWallHeight, getWallThickness, setDimensions, setWallHeight, setWallThickness } from './roomStore';
 import { createMarbleMaterial, createWoodMaterial, createGrassMaterial } from './materials';
+import { basicStore } from '../components/settings/BasicControls';
 
 let floor: Mesh, extendedGround: Mesh, walls: Mesh[], ceiling: Mesh;
 
 export function createGround(scene: Scene): void {
+    const { roomWidth, roomLength, ceilingHeight } = basicStore.getState();
+    setDimensions(roomWidth, roomLength);
+    setWallHeight(ceilingHeight);
+
     const { width: groundWidth, height: groundHeight } = getDimensions();
     const wallHeight = getWallHeight();
     const wallThickness = getWallThickness();
@@ -26,12 +31,15 @@ export function createGround(scene: Scene): void {
         MeshBuilder.CreateBox("wall4", { width: wallThickness, height: wallHeight, depth: groundHeight }, scene)
     ];
 
-    walls[0].position.set(0, wallHeight / 2, -groundHeight / 2);
-    walls[1].position.set(0, wallHeight / 2, groundHeight / 2);
-    walls[2].position.set(-groundWidth / 2, wallHeight / 2, 0);
-    walls[3].position.set(groundWidth / 2, wallHeight / 2, 0);
+    walls.forEach(wall => {
+        wall.position.y = wallHeight / 2; // Set origin point to floor level
+        wall.material = wallAndCeilingMaterial;
+    });
 
-    walls.forEach(wall => wall.material = wallAndCeilingMaterial);
+    walls[0].position.z = -groundHeight / 2;
+    walls[1].position.z = groundHeight / 2;
+    walls[2].position.x = -groundWidth / 2;
+    walls[3].position.x = groundWidth / 2;
 
     ceiling = MeshBuilder.CreateBox("ceiling", { width: groundWidth, height: wallThickness, depth: groundHeight }, scene);
     ceiling.position.y = wallHeight;
@@ -56,14 +64,11 @@ function updateDimensions(width: number, height: number) {
 
 function updateWallHeight(height: number) {
     setWallHeight(height);
-    walls.forEach(wall => wall.scaling.y = height / wall.scaling.y);
+    walls.forEach(wall => {
+        wall.scaling.y = height / wall.scaling.y;
+        wall.position.y = height / 2; // Ensure walls scale upwards from the floor level
+    });
     ceiling.position.y = height;
-    floor.position.y = height / 2;
-
-    walls[0].position.set(0, height / 2, -getDimensions().height / 2);
-    walls[1].position.set(0, height / 2, getDimensions().height / 2);
-    walls[2].position.set(-getDimensions().width / 2, height / 2, 0);
-    walls[3].position.set(getDimensions().width / 2, height / 2, 0);
 }
 
 function updateWallThickness(thickness: number) {

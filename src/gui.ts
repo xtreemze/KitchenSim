@@ -1,7 +1,7 @@
 import { createContainer, createTabs } from './guiHelpers';
-import { addBasicControls } from './components/basic/BasicControls';
-import { addAdvancedControls } from './components/advanced/AdvancedControls';
-import { addExpertControls } from './components/expert/ExpertControls';
+import { addBasicControls } from './components/settings/BasicControls';
+import { addAdvancedControls } from './components/settings/AdvancedControls';
+import { addExpertControls } from './components/settings/ExpertControls';
 
 export function setupGUI() {
   const container = createContainer();
