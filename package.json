@@ -18,7 +18,7 @@
     "ergonomics"
   ],
   "author": "@xtreemze",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@babylonjs/core": "^7.37.0",
     "@babylonjs/gui": "^7.37.0",

@@ -24,7 +24,7 @@ export class AnimationHelper {
             16,
             start,
             start - 0.18,
-            Animation.ANIMATIONLOOPMODE_YOYO
+            Animation.ANIMATIONLOOPMODE_CONSTANT
         );
     }
 }
