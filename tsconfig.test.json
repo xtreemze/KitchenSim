@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "strict": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "outDir": ".test-dist",
+        "rootDir": ".",
+        "types": ["node"]
+    },
+    "files": [
+        "src/simulation/types.ts",
+        "src/simulation/recycling.ts",
+        "src/simulation/SimulationEngine.ts",
+        "tests/simulation.test.ts"
+    ]
+}
