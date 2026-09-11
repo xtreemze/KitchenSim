@@ -1,126 +1,111 @@
-# Kitchen Simulation
+# KitchenSim
 
-## Overview
+KitchenSim is a browser-based household kitchen workflow simulation built with TypeScript, Vite, and Babylon.js. It combines a procedural 3D room with a deterministic household model so layout, family size, appliance choices, waste handling, and time-of-day settings produce visible changes in both the scene and the telemetry.
 
-The Kitchen Simulation is an interactive and dynamic tool designed to model the workflow and ergonomics of a household kitchen. It allows users to simulate grocery storage, meal preparation, cleaning, and waste management while visualizing real-time data outputs. The application is built using Babylon.js for immersive 3D graphics and provides user-friendly controls for customization.
+## What is implemented
 
-## Features
+### Responsive kitchen layout
 
-- **Dynamic Kitchen Layouts**: Automatically adjusts cabinet and storage dimensions based on user inputs.
-- **Simulation Cycles**: Includes stages such as grocery storage, food preparation, meal serving, cleaning, and waste disposal.
-- **Interactive Avatars**: Represents family members as geometric figures performing actions in the kitchen.
-- **Data Tracking**: Monitors grocery consumption, utensil usage, and waste generation with visual and data-driven outputs.
-- **User Controls**:
-  - Sliders for household size, meal frequency, grocery trips, and more.
-  - Toggles for enabling/disabling appliances like dishwashers and microwaves.
-  - Day-night cycle adjustments to simulate lighting and activities over time.
-- **Global Recycling Systems**: Tailored waste management options based on regional practices.
+Room width, length, and ceiling height rebuild the room geometry. Cabinet count and placement are regenerated against the available wall span instead of remaining at fixed coordinates. Enabled appliances and configured waste streams are also represented as scene objects and reposition with the room.
 
-## Getting Started
+### Five-stage household simulation
 
-### Prerequisites
+The running simulation advances through the same workflow advertised by the project:
 
-- **Node.js** (v16+)
-- **npm**
+1. grocery storage;
+2. meal preparation;
+3. meal serving;
+4. cleaning;
+5. waste disposal and sorting.
 
-### Installation
+Each stage changes the simulation state. A complete cycle records food inventory and consumption, portions prepared/served, utensil and dish use, energy, water, waste generation, bin fill, collections, recycling, composting, landfill, and cumulative sorting accuracy.
 
-1. Clone the repository:
+### Household avatars that perform the workflow
 
-   ```bash
-   git clone https://github.com/xtreemze/KitchenSim.git
-   cd KitchenSim
-   ```bash
+Family size controls the number of geometric household avatars in the kitchen. As the lifecycle changes, avatars move to stage-specific work zones. Configured household roles are assigned across the avatars and matching roles are prioritized for the corresponding stage. Avatars are pickable: selecting one shows its current task in the telemetry panel.
 
-2. Install dependencies:
+### Live telemetry
 
-   ```bash
-   npm install
-   ```bash
+The right-side telemetry panel reports the current stage and region together with real-time household metrics and a short event history. It can be disabled from Advanced Controls.
 
-3. Start the development server:
+### Working controls
 
-   ```bash
-   npm run dev
-   ```
+- **Basic**: family size, grocery frequency, meal-prep frequency, cooking frequency, room dimensions, and enabled appliances.
+- **Advanced**: lighting intensity/brightness/color temperature, waste collection interval, bin capacity, sorted waste streams, appliance efficiency, ventilation, cabinet animation, and telemetry visibility.
+- **Expert**: starting time of day, household roles and weighting, simulation speed, and regional recycling profile.
 
-4. Open the application in your browser:
+The time-of-day setting combines with simulated elapsed time to drive sky luminance and scene light intensity while the simulation runs.
 
-   ```bash
-   http://localhost:3000
-   ```
+### Regional recycling behavior
 
-### Project Structure
+KitchenSim currently models three deliberately simplified regional profiles: **USA**, **Japan**, and **EU**. They use different recyclable/compost/hazardous capture rates, so changing region or disabling a sorted waste stream materially changes recycling, composting, landfill, and sorting-accuracy results.
 
-The application is organized as follows:
+These profiles are simulation assumptions, not regulatory guidance. See [`docs/SIMULATION_MODEL.md`](docs/SIMULATION_MODEL.md) for the exact model.
+
+## Run locally
+
+Prerequisites: Node.js 22+ and npm.
 
 ```bash
-KitchenSim/
-├── public/                     # Static assets (textures, models, shaders)
-├── src/                        # Source code
-│   ├── main.ts                 # Application entry point
-│   ├── app/                    # Core simulation logic
-│   ├── components/             # Modular reusable 3D components
-│   ├── workers/                # Web workers for parallel tasks
-│   ├── utils/                  # Helper functions
-│   ├── styles/                 # CSS for UI
-├── tests/                      # Unit and integration tests
-├── .vscode/                    # VSCode settings
-├── package.json                # Project dependencies and scripts
-├── tsconfig.json               # TypeScript configuration
-├── vite.config.ts              # Vite configuration
-└── README.md                   # Documentation
+git clone https://github.com/xtreemze/KitchenSim.git
+cd KitchenSim
+npm install --registry=https://registry.npmjs.org
+npm run dev
 ```
 
-### Usage
+Vite serves the app at `http://localhost:5173` by default.
 
-1. Adjust sliders and toggles in the user interface to set parameters like:
-   - Number of family members.
-   - Frequency of meals and grocery trips.
-   - Appliance usage and waste disposal preferences.
+## Verification
 
-2. Observe how the kitchen layout and simulation cycles adapt to your inputs.
+```bash
+npm run typecheck
+npm test
+npm run build
+# or all three:
+npm run check
+```
 
-3. View data insights such as:
-   - Grocery usage trends.
-   - Waste generation and recycling accuracy.
-   - Appliance efficiency.
+The simulation-domain tests use Node's built-in test runner after compiling only the pure TypeScript simulation modules. Pull requests install from the public npm registry, then run type-checking, tests, and a production build before merge. Pushes to `main` run the same checks before deploying the built Vite application to GitHub Pages.
 
-## Contributing
+## Architecture
 
-We welcome contributions! Please follow these steps to contribute:
+```text
+KitchenSim/
+├── src/
+│   ├── app/                     # Babylon scene, room geometry and dynamic layout
+│   ├── components/
+│   │   ├── avatars/             # Household avatar behavior and interaction
+│   │   └── settings/            # Basic / Advanced / Expert controls
+│   ├── simulation/
+│   │   ├── SimulationEngine.ts  # Pure deterministic household model
+│   │   ├── SimulationRuntime.ts # Browser scheduling and subscriptions
+│   │   ├── recycling.ts         # Regional waste-processing rules
+│   │   ├── Dashboard.ts         # Live telemetry surface
+│   │   └── types.ts             # Domain types and lifecycle stages
+│   ├── models.ts                # Bridge between controls, simulation and scene
+│   └── main.ts                  # Application bootstrap
+├── tests/                       # Simulation-domain tests
+├── docs/                        # Model assumptions and design notes
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```
 
-1. Fork the repository.
-2. Create a new branch for your feature:
+## Model scope
 
-   ```bash
-   git checkout -b feature-name
-   ```
+KitchenSim is an exploratory workflow and ergonomics simulator. Its resource-use and recycling equations are intentionally transparent and deterministic so interactions can be compared; they are not calibrated building-science, appliance-certification, nutrition, or municipal-waste models.
 
-3. Commit your changes and push to your fork:
+## Roadmap — not implemented yet
 
-   ```bash
-   git add .
-   git commit -m "Add feature-name"
-   git push origin feature-name
-   ```
+- calibrated ventilation and airflow simulation;
+- richer storage-capacity and reach/ergonomic constraints;
+- downloadable analytics/history exports;
+- higher-fidelity appliances, utensils, food assets, and task animations;
+- scenario persistence and comparison;
+- shared/multiplayer or VR planning sessions.
 
-4. Submit a pull request.
-
-## Roadmap
-
-- **Lighting and Ventilation**: Dynamic shadows and airflow simulation ([KitchenLife_Design_Document.txt](./docs)).
-- **Advanced User Controls**: Detailed appliance usage, waste tracking, and recycling profiles.
-- **Data Analytics**: Export metrics on kitchen efficiency and workflows.
-- **Multiplayer VR Integration**: Plan and interact with the kitchen in a shared virtual environment.
+Roadmap items are intentionally separated from implemented capabilities so the project presentation remains verifiable against the codebase.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
-
-## Acknowledgments
-
-- Developed with **Babylon.js** and modern web technologies.
-- Inspired by ergonomic studies and household efficiency principles.
-
----
+KitchenSim is distributed under the proprietary terms in [`LICENSE`](LICENSE). The repository permits personal, non-commercial use under those terms; it is **not** MIT-licensed.

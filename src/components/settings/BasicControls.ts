@@ -1,6 +1,17 @@
-import { setRoomState } from '../../app/roomStore';
-import { createSlider, createCheckboxGroup, createTitle, createToggleButton, createCollapsibleSection } from '../../guiHelpers';
-import { applyRoomDimensions, applyMealSettings, applyEnergySettings, applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings } from '../../models';
+import {
+    applyEnergySettings,
+    applyMealSettings,
+    applyRoomDimensions,
+    isSimulationRunning,
+    toggleSimulation
+} from '../../models';
+import {
+    createCheckboxGroup,
+    createCollapsibleSection,
+    createSlider,
+    createTitle,
+    createToggleButton
+} from '../../guiHelpers';
 
 interface StoreState {
     familySize: number;
@@ -21,112 +32,82 @@ const initialState: StoreState = {
     roomWidth: 10,
     roomLength: 10,
     ceilingHeight: 3,
-    appliancesEnabled: []
+    appliancesEnabled: ['Dishwasher', 'Microwave', 'Oven']
 };
 
 class Store {
-    private state: StoreState;
+    private state: StoreState = { ...initialState, appliancesEnabled: [...initialState.appliancesEnabled] };
 
-    constructor() {
-        this.state = initialState;
+    getState(): StoreState {
+        return { ...this.state, appliancesEnabled: [...this.state.appliancesEnabled] };
     }
 
-    getState() {
-        return { ...this.state };
-    }
-
-    updateState(updates: Partial<StoreState>) {
-        this.state = { ...this.state, ...updates };
+    updateState(updates: Partial<StoreState>): void {
+        this.state = {
+            ...this.state,
+            ...updates,
+            appliancesEnabled: updates.appliancesEnabled
+                ? [...updates.appliancesEnabled]
+                : [...this.state.appliancesEnabled]
+        };
     }
 }
 
 export const basicStore = new Store();
 
-export function addBasicControls(panel: HTMLElement) {
-    const title = createTitle('Basic Controls');
-    panel.appendChild(title);
+export function addBasicControls(panel: HTMLElement): void {
+    panel.appendChild(createTitle('Basic Controls'));
 
-    const simulateButton = createToggleButton('Simulate Kitchen', () => {
-        const state = basicStore.getState();
-        applyRoomDimensions({ width: state.roomWidth, length: state.roomLength, height: state.ceilingHeight });
-        applyMealSettings({ familySize: state.familySize, groceryFrequency: state.groceryFrequency, mealPrepFrequency: state.mealPrepFrequency, cookingFrequency: state.cookingFrequency });
-        applyEnergySettings({ appliancesEnabled: state.appliancesEnabled });
-        applyLightingSettings({ lightingPreset: 'Default', lightIntensity: 1, lightingBrightness: 75, colorTemperature: 4000 }); // Example values
-        applyWasteSettings({ wasteFrequency: 3, binCapacity: 30, wasteCategories: ['Compost', 'Plastic'] }); // Example values
-        applyApplianceSettings({ applianceEfficiency: 100, ventilationSpeed: 2, ventilationControls: 'On' }); // Example values
-        applyRoleSettings({ roles: ['Cooking', 'Cleaning'], roleWeightingCooking: 70, roleWeightingCleaning: 30 }); // Example values
-        applySimulationSettings({ simulationSpeed: 1, recyclingRegion: 'USA' }); // Example values
+    const simulateButton = createToggleButton('Start simulation', () => {
+        toggleSimulation();
+        simulateButton.textContent = isSimulationRunning() ? 'Pause simulation' : 'Start simulation';
     });
     panel.appendChild(simulateButton);
 
-    const familySection = createCollapsibleSection('Family Settings', panel);
-    createSlider('Family Size', 1, 12, 4, familySection, 'people');
-    createSlider('Grocery Trip Frequency', 1, 21, 3, familySection, 'days');
-    createSlider('Meal Prep Frequency', 1, 7, 2, familySection, 'times/week');
-    createSlider('Cooking Frequency', 1, 10, 3, familySection, 'meals/day');
-    panel.appendChild(familySection);
+    const familySection = createCollapsibleSection('Household & meals', panel);
+    const familySize = createSlider('Family Size', 1, 12, initialState.familySize, familySection, 'people');
+    const groceryFrequency = createSlider('Grocery Trip Frequency', 1, 21, initialState.groceryFrequency, familySection, 'days');
+    const mealPrepFrequency = createSlider('Meal Prep Frequency', 1, 7, initialState.mealPrepFrequency, familySection, 'times/week');
+    const cookingFrequency = createSlider('Cooking Frequency', 1, 10, initialState.cookingFrequency, familySection, 'meals/day');
 
-    const roomSection = createCollapsibleSection('Room Dimensions', panel);
-    createSlider('Room Width', 4, 40, 25, roomSection, 'meters');
-    createSlider('Room Length', 4, 40, 25, roomSection, 'meters');
-    createSlider('Ceiling Height', 3, 15, 4, roomSection, 'meters');
-    panel.appendChild(roomSection);
+    const roomSection = createCollapsibleSection('Room dimensions', panel);
+    const roomWidth = createSlider('Room Width', 4, 40, initialState.roomWidth, roomSection, 'm');
+    const roomLength = createSlider('Room Length', 4, 40, initialState.roomLength, roomSection, 'm');
+    const ceilingHeight = createSlider('Ceiling Height', 2.4, 6, initialState.ceilingHeight, roomSection, 'm');
 
-    const applianceSection = createCollapsibleSection('Appliance Settings', panel);
-    const appliances = ['Dishwasher', 'Microwave', 'Oven', 'Blender', 'Toaster'];
-    createCheckboxGroup(appliances, 'Appliances Enabled', applianceSection);
-    panel.appendChild(applianceSection);
+    const applianceSection = createCollapsibleSection('Appliances', panel);
+    const applianceInputs = createCheckboxGroup(
+        ['Dishwasher', 'Microwave', 'Oven', 'Blender', 'Toaster'],
+        'Appliances Enabled',
+        applianceSection,
+        initialState.appliancesEnabled
+    );
 
-    // Apply settings when inputs change
-    panel.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', (event) => {
-            const target = event.target as HTMLInputElement;
-            const updates: Partial<StoreState> = {};
-
-            switch (target.id) {
-                case 'slider-family-size':
-                    updates.familySize = parseInt(target.value);
-                    break;
-                case 'slider-grocery-trip-frequency':
-                    updates.groceryFrequency = parseInt(target.value);
-                    break;
-                case 'slider-meal-prep-frequency':
-                    updates.mealPrepFrequency = parseInt(target.value);
-                    break;
-                case 'slider-cooking-frequency':
-                    updates.cookingFrequency = parseInt(target.value);
-                    break;
-                case 'slider-room-width':
-                    updates.roomWidth = parseInt(target.value);
-                    setRoomState({ dimensions: { width: updates.roomWidth, height: basicStore.getState().roomLength } });
-                    break;
-                case 'slider-room-length':
-                    updates.roomLength = parseInt(target.value);
-                    setRoomState({ dimensions: { width: basicStore.getState().roomWidth, height: updates.roomLength } });
-                    break;
-                case 'slider-ceiling-height':
-                    updates.ceilingHeight = parseInt(target.value);
-                    break;
-                default:
-                    if (target.name === 'checkbox-appliances-enabled') {
-                        updates.appliancesEnabled = Array.from(document.querySelectorAll('input#checkbox-appliances-enabled:checked'))
-                            .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
-                            .filter((text): text is string => text !== null && text !== undefined);
-                    }
-                    break;
-            }
-
-            basicStore.updateState(updates);
-
-            const state = basicStore.getState();
-            applyRoomDimensions({ width: state.roomWidth, length: state.roomLength, height: state.ceilingHeight });
-            applyMealSettings({ familySize: state.familySize, groceryFrequency: state.groceryFrequency, mealPrepFrequency: state.mealPrepFrequency, cookingFrequency: state.cookingFrequency });
-            applyEnergySettings({ appliancesEnabled: state.appliancesEnabled });
-            applyLightingSettings({ lightingPreset: 'Default', lightIntensity: 1, lightingBrightness: 75, colorTemperature: 4000 }); // Example values
-            applyWasteSettings({ wasteFrequency: 3, binCapacity: 30, wasteCategories: ['Compost', 'Plastic'] }); // Example values
-            applyApplianceSettings({ applianceEfficiency: 100, ventilationSpeed: 2, ventilationControls: 'On' }); // Example values
-            applyRoleSettings({ roles: ['Cooking', 'Cleaning'], roleWeightingCooking: 70, roleWeightingCleaning: 30 }); // Example values
-            applySimulationSettings({ simulationSpeed: 1, recyclingRegion: 'USA' }); // Example values
+    const sync = (): void => {
+        const state: StoreState = {
+            familySize: Number(familySize.value),
+            groceryFrequency: Number(groceryFrequency.value),
+            mealPrepFrequency: Number(mealPrepFrequency.value),
+            cookingFrequency: Number(cookingFrequency.value),
+            roomWidth: Number(roomWidth.value),
+            roomLength: Number(roomLength.value),
+            ceilingHeight: Number(ceilingHeight.value),
+            appliancesEnabled: applianceInputs.filter((input) => input.checked).map((input) => input.value)
+        };
+        basicStore.updateState(state);
+        applyRoomDimensions({ width: state.roomWidth, length: state.roomLength, height: state.ceilingHeight });
+        applyMealSettings({
+            familySize: state.familySize,
+            groceryFrequency: state.groceryFrequency,
+            mealPrepFrequency: state.mealPrepFrequency,
+            cookingFrequency: state.cookingFrequency
         });
-    });
+        applyEnergySettings({ appliancesEnabled: state.appliancesEnabled });
+    };
+
+    [familySize, groceryFrequency, mealPrepFrequency, cookingFrequency, roomWidth, roomLength, ceilingHeight]
+        .forEach((input) => input.addEventListener('input', sync));
+    applianceInputs.forEach((input) => input.addEventListener('change', sync));
+
+    sync();
 }

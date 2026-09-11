@@ -1,21 +1,24 @@
 import { defineConfig } from 'vite';
-import { resolve, dirname } from 'path';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const currentDirectory = dirname(fileURLToPath(import.meta.url));
+const pagesBase = process.env.GITHUB_ACTIONS === 'true' ? '/KitchenSim/' : '/';
 
 export default defineConfig({
+    base: pagesBase,
     server: {
-        open: true
+        open: true,
+        port: 5173
     },
     build: {
         rollupOptions: {
-            input: resolve(__dirname, 'index.html')
+            input: resolve(currentDirectory, 'index.html')
         }
     },
     resolve: {
         alias: {
-            '@': resolve(__dirname, 'src')
+            '@': resolve(currentDirectory, 'src')
         }
     }
 });

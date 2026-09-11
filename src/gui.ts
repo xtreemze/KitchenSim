@@ -1,31 +1,24 @@
-import { createContainer, createTabs } from './guiHelpers';
-import { addBasicControls } from './components/settings/BasicControls';
 import { addAdvancedControls } from './components/settings/AdvancedControls';
+import { addBasicControls } from './components/settings/BasicControls';
 import { addExpertControls } from './components/settings/ExpertControls';
+import { createContainer, createTabs } from './guiHelpers';
 
-export function setupGUI() {
-  const container = createContainer();
+export function setupGUI(): void {
+    const container = createContainer();
+    const basicPanel = document.createElement('div');
+    const advancedPanel = document.createElement('div');
+    const expertPanel = document.createElement('div');
 
-  const basicPanel = document.createElement('div');
-  const advancedPanel = document.createElement('div');
-  const expertPanel = document.createElement('div');
+    createTabs(container, { Basic: basicPanel, Advanced: advancedPanel, Expert: expertPanel });
+    container.appendChild(basicPanel);
+    container.appendChild(advancedPanel);
+    container.appendChild(expertPanel);
 
-  createTabs(container, { Basic: basicPanel, Advanced: advancedPanel, Expert: expertPanel });
+    basicPanel.hidden = false;
+    advancedPanel.hidden = true;
+    expertPanel.hidden = true;
 
-  container.appendChild(basicPanel);
-  container.appendChild(advancedPanel);
-  container.appendChild(expertPanel);
-
-  basicPanel.style.display = 'block';
-  advancedPanel.style.display = 'none';
-  expertPanel.style.display = 'none';
-
-  // Add Basic controls
-  addBasicControls(basicPanel);
-
-  // Add Advanced controls
-  addAdvancedControls(advancedPanel);
-
-  // Add Expert controls
-  addExpertControls(expertPanel);
+    addBasicControls(basicPanel);
+    addAdvancedControls(advancedPanel);
+    addExpertControls(expertPanel);
 }

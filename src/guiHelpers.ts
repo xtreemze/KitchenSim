@@ -1,15 +1,22 @@
-// Helper to create sliders with labels
-export function createSlider(labelText: string, min: number, max: number, defaultValue: number, panel: HTMLElement, unit: string = '') {
+function slugify(value: string): string {
+    return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+export function createSlider(
+    labelText: string,
+    min: number,
+    max: number,
+    defaultValue: number,
+    panel: HTMLElement,
+    unit = ''
+): HTMLInputElement {
     const container = document.createElement('div');
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = '1fr 2fr 1fr';
-    container.style.gap = '10px';
-    container.style.marginBottom = '10px';
+    container.className = 'control-row control-row-slider';
 
     const label = document.createElement('label');
-    const sliderId = `slider-${labelText.replace(/\s+/g, '-').toLowerCase()}`;
-    label.setAttribute('for', sliderId);
-    label.innerText = labelText;
+    const sliderId = `slider-${slugify(labelText)}`;
+    label.htmlFor = sliderId;
+    label.textContent = labelText;
     container.appendChild(label);
 
     const slider = document.createElement('input');
@@ -18,222 +25,191 @@ export function createSlider(labelText: string, min: number, max: number, defaul
     slider.min = min.toString();
     slider.max = max.toString();
     slider.value = defaultValue.toString();
-    slider.oninput = () => {
-        valueDisplay.innerText = `${slider.value} ${unit}`;
-        // console.log(`${logLabel}:`, slider.value);
-    };
     container.appendChild(slider);
 
     const valueDisplay = document.createElement('span');
-    valueDisplay.innerText = `${defaultValue} ${unit}`;
+    valueDisplay.className = 'control-value';
+    const updateValue = (): void => {
+        valueDisplay.textContent = `${slider.value}${unit ? ` ${unit}` : ''}`;
+    };
+    slider.addEventListener('input', updateValue);
+    updateValue();
     container.appendChild(valueDisplay);
 
     panel.appendChild(container);
+    return slider;
 }
 
-// Helper to create a checkbox group
-export function createCheckboxGroup(options: string[], logLabel: string, panel: HTMLElement) {
-    const groupContainer = document.createElement('div');
-    groupContainer.style.marginBottom = '10px';
+export function createCheckboxGroup(
+    options: readonly string[],
+    labelText: string,
+    panel: HTMLElement,
+    checkedOptions: readonly string[] = options
+): HTMLInputElement[] {
+    const groupContainer = document.createElement('fieldset');
+    groupContainer.className = 'control-group';
 
-    const groupLabel = document.createElement('label');
-    groupLabel.innerText = logLabel;
-    groupLabel.style.display = 'block';
-    groupLabel.style.marginBottom = '5px';
-    groupContainer.appendChild(groupLabel);
+    const legend = document.createElement('legend');
+    legend.textContent = labelText;
+    groupContainer.appendChild(legend);
 
-    options.forEach((option) => {
-        const container = document.createElement('div');
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'auto 1fr';
-        container.style.gap = '10px';
-        container.style.marginBottom = '5px';
+    const groupName = `checkbox-${slugify(labelText)}`;
+    const inputs = options.map((option) => {
+        const container = document.createElement('label');
+        container.className = 'control-choice';
 
         const checkbox = document.createElement('input');
-        const checkboxId = `checkbox-${option.replace(/\s+/g, '-').toLowerCase()}`;
-        checkbox.id = checkboxId;
+        checkbox.id = `${groupName}-${slugify(option)}`;
+        checkbox.name = groupName;
+        checkbox.value = option;
         checkbox.type = 'checkbox';
-        checkbox.checked = true;
-        checkbox.onchange = () => {
-            // console.log(`${logLabel} ${option}:`, checkbox.checked);
-        };
+        checkbox.checked = checkedOptions.includes(option);
         container.appendChild(checkbox);
 
-        const label = document.createElement('label');
-        label.setAttribute('for', checkboxId);
-        label.innerText = option;
-        container.appendChild(label);
+        const text = document.createElement('span');
+        text.textContent = option;
+        container.appendChild(text);
 
         groupContainer.appendChild(container);
+        return checkbox;
     });
 
     panel.appendChild(groupContainer);
+    return inputs;
 }
 
-// Helper to create radio buttons
-export function createRadioGroup(options: string[], logLabel: string, panel: HTMLElement) {
-    const groupContainer = document.createElement('div');
-    groupContainer.style.marginBottom = '10px';
+export function createRadioGroup(
+    options: readonly string[],
+    labelText: string,
+    panel: HTMLElement,
+    defaultValue: string = options[0] ?? ''
+): HTMLInputElement[] {
+    const groupContainer = document.createElement('fieldset');
+    groupContainer.className = 'control-group';
 
-    const groupLabel = document.createElement('label');
-    groupLabel.innerText = logLabel;
-    groupLabel.style.display = 'block';
-    groupLabel.style.marginBottom = '5px';
-    groupContainer.appendChild(groupLabel);
+    const legend = document.createElement('legend');
+    legend.textContent = labelText;
+    groupContainer.appendChild(legend);
 
-    options.forEach((option) => {
-        const container = document.createElement('div');
-        container.style.display = 'grid';
-        container.style.gridTemplateColumns = 'auto 1fr';
-        container.style.gap = '10px';
-        container.style.marginBottom = '5px';
+    const groupName = `radio-${slugify(labelText)}`;
+    const inputs = options.map((option) => {
+        const container = document.createElement('label');
+        container.className = 'control-choice';
 
         const radioButton = document.createElement('input');
-        const radioId = `radio-${option.replace(/\s+/g, '-').toLowerCase()}`;
-        radioButton.id = radioId;
+        radioButton.id = `${groupName}-${slugify(option)}`;
         radioButton.type = 'radio';
-        radioButton.name = logLabel;
-        radioButton.checked = option === options[0];
-        // radioButton.onchange = () => {
-        //     if (radioButton.checked) console.log(`${logLabel}:`, option);
-        // };
+        radioButton.name = groupName;
+        radioButton.value = option;
+        radioButton.checked = option === defaultValue;
         container.appendChild(radioButton);
 
-        const label = document.createElement('label');
-        label.setAttribute('for', radioId);
-        label.innerText = option;
-        container.appendChild(label);
+        const text = document.createElement('span');
+        text.textContent = option;
+        container.appendChild(text);
 
         groupContainer.appendChild(container);
+        return radioButton;
     });
 
     panel.appendChild(groupContainer);
+    return inputs;
 }
 
-// Helper to create titles
-export function createTitle(text: string) {
+export function createTitle(text: string): HTMLHeadingElement {
     const title = document.createElement('h3');
-    title.innerText = text;
-    title.style.marginBottom = '10px';
+    title.textContent = text;
     return title;
 }
 
-// Make the container draggable
-export function makeDraggable(element: HTMLElement) {
+export function makeDraggable(element: HTMLElement): void {
     let isDragging = false;
     let offsetX = 0;
     let offsetY = 0;
 
-    element.onmousedown = (e) => {
-        if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'BUTTON') {
+    element.addEventListener('mousedown', (event) => {
+        const target = event.target as HTMLElement;
+        if (['INPUT', 'BUTTON', 'LABEL'].includes(target.tagName)) {
             return;
         }
         isDragging = true;
-        offsetX = e.clientX - element.offsetLeft;
-        offsetY = e.clientY - element.offsetTop;
-        document.onmousemove = (e) => {
-            if (isDragging) {
-                element.style.left = `${e.clientX - offsetX}px`;
-                element.style.top = `${e.clientY - offsetY}px`;
-            }
-        };
-        document.onmouseup = () => {
-            isDragging = false;
-            document.onmousemove = null;
-            document.onmouseup = null;
-        };
-    };
+        offsetX = event.clientX - element.offsetLeft;
+        offsetY = event.clientY - element.offsetTop;
+    });
+
+    document.addEventListener('mousemove', (event) => {
+        if (!isDragging) {
+            return;
+        }
+        element.style.left = `${event.clientX - offsetX}px`;
+        element.style.top = `${event.clientY - offsetY}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
 }
 
-// Helper to create the container
-export function createContainer() {
+export function createContainer(): HTMLDivElement {
     const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '400px';
-    container.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    container.style.color = 'white';
-    container.style.padding = '10px';
-    container.style.borderRadius = '8px';
-    container.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-    container.style.cursor = 'move';
+    container.className = 'control-panel';
     document.body.appendChild(container);
-
     makeDraggable(container);
-
     return container;
 }
 
-// Helper to create tabs
-export function createTabs(container: HTMLElement, panels: { [key: string]: HTMLElement }) {
+export function createTabs(container: HTMLElement, panels: Record<string, HTMLElement>): void {
     const tabs = document.createElement('div');
-    tabs.style.display = 'flex';
-    tabs.style.justifyContent = 'space-between';
-    tabs.style.marginBottom = '10px';
+    tabs.className = 'control-tabs';
     container.appendChild(tabs);
 
-    Object.keys(panels).forEach((name) => {
+    Object.entries(panels).forEach(([name, selectedPanel], index) => {
         const button = document.createElement('button');
-        button.innerText = name;
-        button.style.flex = '1';
-        button.style.margin = '0 5px';
-        button.style.padding = '10px';
-        button.style.border = 'none';
-        button.style.borderRadius = '4px';
-        button.style.backgroundColor = 'gray';
-        button.style.color = 'white';
-        button.style.cursor = 'pointer';
-        button.onclick = () => {
-            Object.values(panels).forEach(panel => panel.style.display = 'none');
-            panels[name].style.display = 'block';
-        };
+        button.type = 'button';
+        button.textContent = name;
+        button.className = 'control-tab';
+        button.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
+        button.addEventListener('click', () => {
+            Object.values(panels).forEach((panel) => {
+                panel.hidden = true;
+            });
+            tabs.querySelectorAll('button').forEach((tab) => tab.setAttribute('aria-pressed', 'false'));
+            selectedPanel.hidden = false;
+            button.setAttribute('aria-pressed', 'true');
+        });
         tabs.appendChild(button);
     });
 }
 
-// Helper to create toggle buttons
-export function createToggleButton(text: string, onClick: () => void) {
+export function createToggleButton(text: string, onClick: () => void): HTMLButtonElement {
     const button = document.createElement('button');
-    button.innerText = text;
-    button.style.width = '100%';
-    button.style.marginBottom = '10px';
-    button.style.padding = '10px';
-    button.style.border = 'none';
-    button.style.borderRadius = '4px';
-    button.style.backgroundColor = 'gray';
-    button.style.color = 'white';
-    button.style.cursor = 'pointer';
-    button.onclick = onClick;
+    button.type = 'button';
+    button.textContent = text;
+    button.className = 'primary-control';
+    button.addEventListener('click', onClick);
     return button;
 }
 
-// Helper to create collapsible sections
-export function createCollapsibleSection(titleText: string, panel: HTMLElement) {
-    const section = document.createElement('div');
-    section.style.marginBottom = '10px';
+export function createCollapsibleSection(titleText: string, panel: HTMLElement): HTMLDivElement {
+    const section = document.createElement('section');
+    section.className = 'control-section';
 
     const header = document.createElement('button');
-    header.innerText = titleText;
-    header.style.width = '100%';
-    header.style.padding = '10px';
-    header.style.border = 'none';
-    header.style.borderRadius = '4px';
-    header.style.backgroundColor = 'gray';
-    header.style.color = 'white';
-    header.style.cursor = 'pointer';
-    header.onclick = () => {
-        content.style.display = content.style.display === 'none' ? 'block' : 'none';
-    };
+    header.type = 'button';
+    header.textContent = titleText;
+    header.className = 'section-toggle';
+    header.setAttribute('aria-expanded', 'false');
     section.appendChild(header);
 
     const content = document.createElement('div');
-    content.style.display = 'none';
-    content.style.padding = '10px';
-    content.style.border = '1px solid gray';
-    content.style.borderRadius = '4px';
-    content.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    content.className = 'section-content';
+    content.hidden = true;
     section.appendChild(content);
+
+    header.addEventListener('click', () => {
+        content.hidden = !content.hidden;
+        header.setAttribute('aria-expanded', String(!content.hidden));
+    });
 
     panel.appendChild(section);
     return content;
