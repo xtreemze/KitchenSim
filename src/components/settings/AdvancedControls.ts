@@ -1,5 +1,18 @@
-import { createSlider, createCheckboxGroup, createRadioGroup, createTitle, createCollapsibleSection } from '../../guiHelpers';
-import { applyLightingSettings, applyWasteSettings, applyApplianceSettings, applyRoleSettings, applySimulationSettings, applyCabinetAnimationSettings } from '../../models';
+import {
+    applyApplianceSettings,
+    applyCabinetAnimationSettings,
+    applyLightingSettings,
+    applyWasteSettings,
+    setMetricsVisibility
+} from '../../models';
+import {
+    createCheckboxGroup,
+    createCollapsibleSection,
+    createRadioGroup,
+    createSlider,
+    createTitle
+} from '../../guiHelpers';
+import { WasteCategory } from '../../simulation/types';
 
 interface StoreState {
     lightIntensity: number;
@@ -7,16 +20,12 @@ interface StoreState {
     colorTemperature: number;
     wasteFrequency: number;
     binCapacity: number;
-    wasteCategories: string[];
+    wasteCategories: WasteCategory[];
     applianceEfficiency: number;
     ventilationSpeed: number;
-    ventilationControls: string;
-    roles: string[];
-    roleWeightingCooking: number;
-    roleWeightingCleaning: number;
-    simulationSpeed: number;
-    recyclingRegion: string;
-    openDoorDrawerAnimation: boolean; // New property
+    ventilationEnabled: boolean;
+    openDoorDrawerAnimation: boolean;
+    showMetrics: boolean;
 }
 
 const initialState: StoreState = {
@@ -25,144 +34,115 @@ const initialState: StoreState = {
     colorTemperature: 4000,
     wasteFrequency: 3,
     binCapacity: 30,
-    wasteCategories: [],
+    wasteCategories: ['Compost', 'Plastic', 'Glass', 'Paper', 'Metal', 'Hazardous'],
     applianceEfficiency: 100,
     ventilationSpeed: 2,
-    ventilationControls: 'Off',
-    roles: [],
-    roleWeightingCooking: 70,
-    roleWeightingCleaning: 30,
-    simulationSpeed: 1,
-    recyclingRegion: 'USA',
-    openDoorDrawerAnimation: false // New property
+    ventilationEnabled: false,
+    openDoorDrawerAnimation: true,
+    showMetrics: true
 };
 
-
 class Store {
-    private state: StoreState;
+    private state: StoreState = { ...initialState, wasteCategories: [...initialState.wasteCategories] };
 
-    constructor() {
-        this.state = initialState;
+    getState(): StoreState {
+        return { ...this.state, wasteCategories: [...this.state.wasteCategories] };
     }
 
-    getState() {
-        return this.state;
-    }
-
-    updateState(updates: Partial<StoreState>) {
-        this.state = { ...this.state, ...updates };
+    updateState(updates: Partial<StoreState>): void {
+        this.state = {
+            ...this.state,
+            ...updates,
+            wasteCategories: updates.wasteCategories
+                ? [...updates.wasteCategories]
+                : [...this.state.wasteCategories]
+        };
     }
 }
 
 const advancedStore = new Store();
 
-export function addAdvancedControls(panel: HTMLElement) {
-    const title = createTitle('Advanced Controls');
-    panel.appendChild(title);
+export function addAdvancedControls(panel: HTMLElement): void {
+    panel.appendChild(createTitle('Advanced Controls'));
 
-    const lightingSection = createCollapsibleSection('Lighting Settings', panel);
-    createSlider('Light Intensity', 0, 5, 1, lightingSection, 'lux');
-    createSlider('Lighting Brightness', 0, 100, 75, lightingSection, '%');
-    createSlider('Color Temperature', 1000, 8000, 4000, lightingSection, 'K');
-    panel.appendChild(lightingSection);
+    const lightingSection = createCollapsibleSection('Lighting', panel);
+    const lightIntensity = createSlider('Light Intensity', 0, 5, initialState.lightIntensity, lightingSection, 'x');
+    const lightingBrightness = createSlider('Lighting Brightness', 0, 100, initialState.lightingBrightness, lightingSection, '%');
+    const colorTemperature = createSlider('Color Temperature', 2000, 8000, initialState.colorTemperature, lightingSection, 'K');
 
-    const feedbackSection = createCollapsibleSection('Feedback Settings', panel);
-    createCheckboxGroup(['Show Real-Time Metrics'], 'User Feedback System', feedbackSection);
-    panel.appendChild(feedbackSection);
+    const wasteSection = createCollapsibleSection('Waste & sorting', panel);
+    const wasteFrequency = createSlider('Waste Disposal Frequency', 1, 14, initialState.wasteFrequency, wasteSection, 'days');
+    const binCapacity = createSlider('Bin Capacity', 10, 100, initialState.binCapacity, wasteSection, 'L');
+    const wasteInputs = createCheckboxGroup(
+        ['Compost', 'Plastic', 'Glass', 'Paper', 'Metal', 'Hazardous'],
+        'Sorted Waste Streams',
+        wasteSection,
+        initialState.wasteCategories
+    );
 
-    const storageSection = createCollapsibleSection('Storage Settings', panel);
-    createSlider('Pantry Volume', 50, 500, 100, storageSection, 'liters');
-    createSlider('Shelf Volume', 50, 500, 100, storageSection, 'liters');
-    createSlider('Drawer Volume', 50, 500, 100, storageSection, 'liters');
-    createCheckboxGroup(['Open Door and Drawer Animation'], 'Cabinet Animations', storageSection); // New checkbox
-    panel.appendChild(storageSection);
+    const applianceSection = createCollapsibleSection('Efficiency & ventilation', panel);
+    const applianceEfficiency = createSlider('Appliance Efficiency', 10, 200, initialState.applianceEfficiency, applianceSection, '%');
+    const ventilationSpeed = createSlider('Ventilation Speed', 0, 5, initialState.ventilationSpeed, applianceSection, 'level');
+    const ventilationControls = createRadioGroup(['Off', 'On'], 'Ventilation Controls', applianceSection, 'Off');
 
-    const mealSection = createCollapsibleSection('Meal Settings', panel);
-    createRadioGroup(['Cooked', 'Pre-Packaged', 'Mixed', 'Custom'], 'Meal Type', mealSection);
-    createCheckboxGroup(['Vegetarian', 'Vegan', 'Gluten-Free', 'Keto', 'Paleo'], 'Dietary Preferences', mealSection);
-    createSlider('Dishwasher Usage', 0, 5, 1, mealSection, 'times/day');
-    createSlider('Microwave Usage', 0, 20, 5, mealSection, 'times/day');
-    createSlider('Oven Usage', 0, 5, 2, mealSection, 'times/day');
-    panel.appendChild(mealSection);
+    const feedbackSection = createCollapsibleSection('Feedback & animation', panel);
+    const animationInput = createCheckboxGroup(
+        ['Open Door and Drawer Animation'],
+        'Cabinet Animation',
+        feedbackSection,
+        ['Open Door and Drawer Animation']
+    )[0];
+    const metricsInput = createCheckboxGroup(
+        ['Show Real-Time Metrics'],
+        'Telemetry',
+        feedbackSection,
+        ['Show Real-Time Metrics']
+    )[0];
 
-    const energySection = createCollapsibleSection('Energy Settings', panel);
-    createSlider('Energy Usage Settings', 50, 150, 100, energySection, '%');
-    createRadioGroup(['Refrigerated', 'Frozen', 'Room Temperature'], 'Meal Storage Preferences', energySection);
-    createCheckboxGroup(['Fruits', 'Vegetables', 'Proteins', 'Snacks'], 'Ingredient Categories', energySection);
-    createSlider('Cleaning Frequency', 1, 7, 3, energySection, 'times/day');
-    panel.appendChild(energySection);
-
-    // Apply settings when inputs change
-    panel.querySelectorAll('input').forEach(input => {
-        input.addEventListener('change', (event) => {
-            const target = event.target as HTMLInputElement;
-            const updates: Partial<StoreState> = {};
-
-            switch (target.id) {
-                case 'slider-light-intensity':
-                    updates.lightIntensity = parseFloat(target.value);
-                    break;
-                case 'slider-lighting-brightness':
-                    updates.lightingBrightness = parseFloat(target.value);
-                    break;
-                case 'slider-color-temperature':
-                    updates.colorTemperature = parseFloat(target.value);
-                    break;
-                case 'slider-waste-frequency':
-                    updates.wasteFrequency = parseInt(target.value);
-                    break;
-                case 'slider-bin-capacity':
-                    updates.binCapacity = parseInt(target.value);
-                    break;
-                case 'slider-appliance-efficiency':
-                    updates.applianceEfficiency = parseInt(target.value);
-                    break;
-                case 'slider-ventilation-speed':
-                    updates.ventilationSpeed = parseInt(target.value);
-                    break;
-                case 'slider-role-weighting-cooking':
-                    updates.roleWeightingCooking = parseInt(target.value);
-                    break;
-                case 'slider-role-weighting-cleaning':
-                    updates.roleWeightingCleaning = parseInt(target.value);
-                    break;
-                case 'slider-simulation-speed':
-                    updates.simulationSpeed = parseFloat(target.value);
-                    break;
-                default:
-                    if (target.name === 'checkbox-open-door-drawer-animation') {
-                        updates.openDoorDrawerAnimation = target.checked;
-                    } else if (target.name === 'radio-regional-recycling-rules') {
-                        updates.recyclingRegion = target.value;
-                    } else if (target.name === 'checkbox-dynamic-waste-categories') {
-                        updates.wasteCategories = Array.from(document.querySelectorAll('input#checkbox-dynamic-waste-categories:checked'))
-                            .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
-                            .filter((text): text is string => text !== null && text !== undefined);
-                    } else if (target.name === 'checkbox-assign-roles') {
-                        updates.roles = Array.from(document.querySelectorAll('input#checkbox-assign-roles:checked'))
-                            .map((checkbox) => (checkbox as HTMLInputElement).nextElementSibling?.textContent)
-                            .filter((text): text is string => text !== null && text !== undefined);
-                    } else if (target.name === 'radio-ventilation-controls') {
-                        updates.ventilationControls = target.value;
-                    }
-                    break;
-            }
-
-            advancedStore.updateState(updates);
-
-            const state = advancedStore.getState();
-            applyLightingSettings({ lightingPreset: 'Advanced', lightIntensity: state.lightIntensity, lightingBrightness: state.lightingBrightness, colorTemperature: state.colorTemperature });
-            applyWasteSettings({ wasteFrequency: state.wasteFrequency, binCapacity: state.binCapacity, wasteCategories: state.wasteCategories });
-            applyApplianceSettings({ applianceEfficiency: state.applianceEfficiency, ventilationSpeed: state.ventilationSpeed, ventilationControls: state.ventilationControls });
-            applyRoleSettings({ roles: state.roles, roleWeightingCooking: state.roleWeightingCooking, roleWeightingCleaning: state.roleWeightingCleaning });
-            applySimulationSettings({ simulationSpeed: state.simulationSpeed, recyclingRegion: state.recyclingRegion });
-
-            // Apply the new setting
-            applyCabinetAnimationSettings({ openDoorDrawerAnimation: state.openDoorDrawerAnimation });
+    const sync = (): void => {
+        const selectedVentilation = ventilationControls.find((input) => input.checked)?.value ?? 'Off';
+        const state: StoreState = {
+            lightIntensity: Number(lightIntensity.value),
+            lightingBrightness: Number(lightingBrightness.value),
+            colorTemperature: Number(colorTemperature.value),
+            wasteFrequency: Number(wasteFrequency.value),
+            binCapacity: Number(binCapacity.value),
+            wasteCategories: wasteInputs.filter((input) => input.checked).map((input) => input.value as WasteCategory),
+            applianceEfficiency: Number(applianceEfficiency.value),
+            ventilationSpeed: Number(ventilationSpeed.value),
+            ventilationEnabled: selectedVentilation === 'On',
+            openDoorDrawerAnimation: animationInput.checked,
+            showMetrics: metricsInput.checked
+        };
+        advancedStore.updateState(state);
+        applyLightingSettings({
+            lightingPreset: 'Advanced',
+            lightIntensity: state.lightIntensity,
+            lightingBrightness: state.lightingBrightness,
+            colorTemperature: state.colorTemperature
         });
-    });
+        applyWasteSettings({
+            wasteFrequency: state.wasteFrequency,
+            binCapacity: state.binCapacity,
+            wasteCategories: state.wasteCategories
+        });
+        applyApplianceSettings({
+            applianceEfficiency: state.applianceEfficiency,
+            ventilationSpeed: state.ventilationSpeed,
+            ventilationControls: state.ventilationEnabled ? 'On' : 'Off'
+        });
+        applyCabinetAnimationSettings({ openDoorDrawerAnimation: state.openDoorDrawerAnimation });
+        setMetricsVisibility(state.showMetrics);
+    };
+
+    [lightIntensity, lightingBrightness, colorTemperature, wasteFrequency, binCapacity, applianceEfficiency, ventilationSpeed]
+        .forEach((input) => input.addEventListener('input', sync));
+    [...wasteInputs, ...ventilationControls, animationInput, metricsInput]
+        .forEach((input) => input.addEventListener('change', sync));
+
+    sync();
 }
 
-export function getStore() {
+export function getStore(): Store {
     return advancedStore;
 }

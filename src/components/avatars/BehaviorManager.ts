@@ -1,26 +1,30 @@
-
+import { Vector3 } from '@babylonjs/core';
 import { KitchenHumans } from './KitchenHumans';
 
 export class BehaviorManager {
-    private kitchenHumans: KitchenHumans;
+    constructor(private readonly kitchenHumans: KitchenHumans) {}
 
-    constructor(kitchenHumans: KitchenHumans) {
-        this.kitchenHumans = kitchenHumans;
+    handleGroceryStorage(dimensions: { width: number; length: number }): void {
+        this.kitchenHumans.performStage('grocery-storage', dimensions);
     }
 
-    handleGroceryStorage() {
-        // Implement grocery storage behavior
+    handleCooking(dimensions: { width: number; length: number }): void {
+        this.kitchenHumans.performStage('meal-preparation', dimensions);
     }
 
-    handleCooking() {
-        // Implement cooking behavior
+    handleMealServing(dimensions: { width: number; length: number }): void {
+        this.kitchenHumans.performStage('meal-serving', dimensions);
     }
 
-    handleCleaning() {
-        // Implement cleaning behavior
+    handleCleaning(dimensions: { width: number; length: number }): void {
+        this.kitchenHumans.performStage('cleaning', dimensions);
     }
 
-    handleWasteDisposal() {
-        // Implement waste disposal behavior
+    handleWasteDisposal(dimensions: { width: number; length: number }): void {
+        this.kitchenHumans.performStage('waste-disposal', dimensions);
+    }
+
+    getDefaultInteractionOffset(): Vector3 {
+        return new Vector3(0.55, 0, 0.55);
     }
 }

@@ -1,8 +1,8 @@
+import './styles/app.css';
 import { initializeScene } from './app/SceneManager';
 import { setupGUI } from './gui';
+import { bindScene } from './models';
 
-// Create GUI
-setupGUI();
-
-// Initialize the scene
 export const scene = initializeScene('renderCanvas');
+bindScene(scene);
+setupGUI();
