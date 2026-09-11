@@ -44,12 +44,12 @@ These profiles are simulation assumptions, not regulatory guidance. See [`docs/S
 
 ## Run locally
 
-Prerequisites: Node.js 20+ and npm.
+Prerequisites: Node.js 22+ and npm.
 
 ```bash
 git clone https://github.com/xtreemze/KitchenSim.git
 cd KitchenSim
-npm ci
+npm install --registry=https://registry.npmjs.org
 npm run dev
 ```
 
@@ -65,7 +65,7 @@ npm run build
 npm run check
 ```
 
-The simulation-domain tests use Node's built-in test runner after compiling only the pure TypeScript simulation modules. Pull requests run type-checking, tests, and a production build before merge. Pushes to `main` run the same checks before deploying the built Vite application to GitHub Pages.
+The simulation-domain tests use Node's built-in test runner after compiling only the pure TypeScript simulation modules. Pull requests install from the public npm registry, then run type-checking, tests, and a production build before merge. Pushes to `main` run the same checks before deploying the built Vite application to GitHub Pages.
 
 ## Architecture
 
