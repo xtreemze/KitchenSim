@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">KitchenSim kitchen plan mark</title>
+  <rect width="64" height="64" rx="14" fill="#171a1f"/>
+  <path d="M16 16v32h32V16H16zm9 0v13h14V16M16 38h14v10m9-19h9" fill="none" stroke="#f1efe8" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="39" cy="38" r="6" fill="none" stroke="#d39b5f" stroke-width="4"/>
+</svg>
